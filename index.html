@@ -2,196 +2,119 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>客户走访记录</title>
-  
-  <!-- PWA配置 -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="走访记录">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="theme-color" content="#3498db">
-  <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIuWuouaIt+i1sOiuu+iusOW9lSIsCiAgInNob3J0X25hbWUiOiAi6LWw6K6/6K6w5b2VIiwKICAic3RhcnRfdXJsIjogIi4iLAogICJkaXNwbGF5IjogInN0YW5kYWxvbmUiLAogICJiYWNrZ3JvdW5kX2NvbG9yIjogIiNmNWY3ZmEiLAogICJ0aGVtZV9jb2xvciI6ICIjMzQ5OGRiIiwKICAiaWNvbnMiOiBbXQp9">
-  
-  <!-- 桌面图标 -->
-  <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%233498db'/><text x='50' y='65' text-anchor='middle' fill='white' font-size='50' font-family='Arial'>📋</text></svg>">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%233498db'/><text x='50' y='65' text-anchor='middle' fill='white' font-size='50' font-family='Arial'>📋</text></svg>">
-  
+  <meta name="format-detection" content="telephone=no">
+  <meta name="x5-fullscreen" content="true">
+  <meta name="full-screen" content="yes">
+  <meta name="browsermode" content="application">
+  <meta name="x5-page-mode" content="app">
+  <meta name="uc-aot" content="true">
+  <link rel="apple-touch-icon" sizes="180x180" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%233498db'/><text x='50' y='65' text-anchor='middle' fill='white' font-size='50' font-family='Arial'>访</text></svg>">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%233498db'/><text x='50' y='65' text-anchor='middle' fill='white' font-size='50' font-family='Arial'>访</text></svg>">
   <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
   <script src="https://webapi.amap.com/maps?v=2.0&key=0fbf2cb3e705e9c632e3c466253637e0&plugin=AMap.Geolocation,AMap.Geocoder"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
-      font-family: 'Microsoft YaHei', -apple-system, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft YaHei', sans-serif;
       background: #f5f7fa;
-      padding: 15px;
-      padding-top: env(safe-area-inset-top);
-      padding-bottom: env(safe-area-inset-bottom);
+      padding: 12px;
+      padding-top: env(safe-area-inset-top, 12px);
+      padding-bottom: env(safe-area-inset-bottom, 12px);
     }
     .container {
-      max-width: 600px;
-      margin: 0 auto;
-      background: white;
-      border-radius: 16px;
-      padding: 25px 20px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+      max-width: 600px; margin: 0 auto;
+      background: white; border-radius: 16px;
+      padding: 20px 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.08);
     }
-    h2 { 
-      color: #2c3e50; 
-      margin-bottom: 20px; 
-      font-size: 22px;
-      padding-bottom: 12px;
-      border-bottom: 2px solid #ecf0f1;
-    }
-    .form-group { margin-bottom: 16px; }
-    label { 
-      display: block; 
-      margin-bottom: 6px; 
-      color: #34495e; 
-      font-weight: 600;
-      font-size: 14px;
-    }
+    h2 { color: #2c3e50; margin-bottom: 18px; font-size: 20px; padding-bottom: 10px; border-bottom: 2px solid #ecf0f1; }
+    .form-group { margin-bottom: 14px; }
+    label { display: block; margin-bottom: 5px; color: #34495e; font-weight: 600; font-size: 13px; }
     input, select, textarea {
-      width: 100%;
-      padding: 10px 12px;
-      border: 2px solid #e0e6ed;
-      border-radius: 8px;
-      font-size: 14px;
-      transition: border-color 0.3s;
-      background: #fafbfc;
-      -webkit-appearance: none;
+      width: 100%; padding: 10px 12px; border: 2px solid #e0e6ed;
+      border-radius: 8px; font-size: 14px; transition: border-color 0.3s;
+      background: #fafbfc; -webkit-appearance: none;
     }
-    input:focus, select:focus, textarea:focus {
-      border-color: #3498db;
-      outline: none;
-      background: white;
-    }
-    input[readonly] {
-      background: #f0f3f5;
-      color: #2c3e50;
-    }
-    textarea {
-      resize: vertical;
-      min-height: 70px;
-      font-family: 'Microsoft YaHei', sans-serif;
-    }
+    input:focus, select:focus, textarea:focus { border-color: #3498db; outline: none; background: white; }
+    input[readonly] { background: #f0f3f5; color: #2c3e50; }
+    textarea { resize: vertical; min-height: 65px; }
     .location-box { display: flex; gap: 8px; }
     .location-box input { flex: 1; }
     button {
-      padding: 10px 16px;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 14px;
-      font-weight: 600;
-      transition: all 0.3s;
-      -webkit-tap-highlight-color: transparent;
+      padding: 10px 14px; border: none; border-radius: 8px;
+      cursor: pointer; font-size: 13px; font-weight: 600;
+      transition: all 0.2s; -webkit-tap-highlight-color: transparent;
     }
+    button:active { transform: scale(0.96); }
     .btn-primary { background: #3498db; color: white; }
-    .btn-primary:hover { background: #2980b9; }
-    .btn-primary:active { transform: scale(0.98); }
     .btn-secondary { background: #ecf0f1; color: #2c3e50; }
-    .btn-secondary:hover { background: #d5dbdb; }
     .btn-location { background: #27ae60; color: white; white-space: nowrap; }
-    .btn-location:hover { background: #229954; }
-    .btn-location:disabled { background: #95a5a6; cursor: not-allowed; }
+    .btn-location:disabled { background: #95a5a6; }
     .btn-danger { background: #e74c3c; color: white; }
-    .btn-danger:hover { background: #c0392b; }
-    
     .image-upload-container {
-      display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px;
-      min-height: 90px; padding: 12px;
-      border: 2px dashed #bdc3c7; border-radius: 12px;
-      background: #fafbfc; transition: all 0.3s;
+      display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px;
+      min-height: 80px; padding: 10px; border: 2px dashed #bdc3c7;
+      border-radius: 12px; background: #fafbfc;
     }
-    .image-upload-container.drag-over { border-color: #3498db; background: #ebf5fb; }
     .image-item {
-      width: 75px; height: 75px; border-radius: 8px; position: relative;
+      width: 70px; height: 70px; border-radius: 8px; position: relative;
       background-size: cover; background-position: center;
-      border: 2px solid #e0e6ed; transition: transform 0.2s;
+      border: 2px solid #e0e6ed;
     }
-    .image-item:active { transform: scale(0.95); }
     .image-item .delete-btn {
-      position: absolute; top: -6px; right: -6px;
-      width: 22px; height: 22px; background: #e74c3c; color: white;
+      position: absolute; top: -5px; right: -5px;
+      width: 20px; height: 20px; background: #e74c3c; color: white;
       border-radius: 50%; display: flex; align-items: center; justify-content: center;
-      cursor: pointer; font-size: 12px; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+      cursor: pointer; font-size: 11px; font-weight: bold;
     }
     .upload-btn {
-      width: 75px; height: 75px; border: 2px dashed #bdc3c7; border-radius: 8px;
+      width: 70px; height: 70px; border: 2px dashed #bdc3c7; border-radius: 8px;
       display: flex; flex-direction: column; align-items: center; justify-content: center;
-      cursor: pointer; transition: all 0.3s; color: #7f8c8d; background: white;
+      cursor: pointer; color: #7f8c8d; background: white;
     }
-    .upload-btn:active { transform: scale(0.95); }
-    .upload-btn .plus-icon { font-size: 26px; font-weight: bold; line-height: 1; }
-    .upload-btn small { font-size: 10px; }
-    .upload-progress {
-      width: 100%; height: 4px; background: #ecf0f1;
-      border-radius: 2px; margin-top: 8px; overflow: hidden; display: none;
-    }
+    .upload-btn .plus-icon { font-size: 24px; font-weight: bold; }
+    .upload-btn small { font-size: 9px; }
+    .upload-progress { width: 100%; height: 3px; background: #ecf0f1; border-radius: 2px; margin-top: 6px; overflow: hidden; display: none; }
     .progress-bar { height: 100%; background: #3498db; transition: width 0.3s; }
-    .map-links { margin-top: 6px; font-size: 12px; display: flex; gap: 8px; }
-    .map-links a { 
-      color: #3498db; text-decoration: none; padding: 3px 10px;
-      border: 1px solid #3498db; border-radius: 4px; transition: all 0.3s;
-    }
-    .map-links a:active { background: #3498db; color: white; }
-    .status-message {
-      padding: 10px 14px; border-radius: 8px; margin-top: 15px;
-      font-size: 13px; display: none; border-left: 4px solid;
-    }
+    .map-links { margin-top: 5px; font-size: 12px; display: flex; gap: 6px; }
+    .map-links a { color: #3498db; text-decoration: none; padding: 2px 8px; border: 1px solid #3498db; border-radius: 4px; font-size: 11px; }
+    .status-message { padding: 8px 12px; border-radius: 8px; margin-top: 12px; font-size: 12px; display: none; border-left: 3px solid; }
     .success { background: #d4edda; color: #155724; display: block; border-color: #28a745; }
     .error { background: #f8d7da; color: #721c24; display: block; border-color: #dc3545; }
     .info { background: #d1ecf1; color: #0c5460; display: block; border-color: #17a2b8; }
-    .btn-group { display: flex; gap: 8px; margin-top: 20px; flex-wrap: wrap; }
-    .image-count {
-      display: inline-block; padding: 2px 8px; background: #3498db;
-      color: white; border-radius: 10px; font-size: 11px; margin-left: 6px;
-    }
-    .location-info {
-      font-size: 11px; color: #7f8c8d; margin-top: 4px;
-      max-height: 50px; overflow-y: auto; line-height: 1.4;
-    }
-    .accuracy-badge { display: inline-block; padding: 1px 5px; border-radius: 4px; font-size: 10px; font-weight: bold; margin-left: 4px; }
+    .btn-group { display: flex; gap: 6px; margin-top: 16px; flex-wrap: wrap; }
+    .image-count { display: inline-block; padding: 1px 7px; background: #3498db; color: white; border-radius: 8px; font-size: 10px; margin-left: 5px; }
+    .location-info { font-size: 10px; color: #7f8c8d; margin-top: 3px; max-height: 40px; overflow-y: auto; }
+    .accuracy-badge { display: inline-block; padding: 0px 4px; border-radius: 3px; font-size: 9px; margin-left: 3px; }
     .accuracy-high { background: #d4edda; color: #155724; }
     .accuracy-medium { background: #fff3cd; color: #856404; }
     .accuracy-low { background: #f8d7da; color: #721c24; }
-    
-    .records-section { margin-top: 25px; padding-top: 15px; border-top: 2px solid #ecf0f1; }
-    .records-table { width: 100%; border-collapse: collapse; font-size: 11px; margin-top: 10px; }
-    .records-table th { background: #3498db; color: white; padding: 6px; text-align: left; font-size: 10px; }
-    .records-table td { padding: 6px; border-bottom: 1px solid #ecf0f1; max-width: 80px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    
-    .loading-overlay {
-      display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center;
-    }
-    .loading-content { background: white; padding: 25px; border-radius: 12px; text-align: center; }
-    .spinner {
-      border: 4px solid #ecf0f1; border-top: 4px solid #3498db;
-      border-radius: 50%; width: 36px; height: 36px; animation: spin 1s linear infinite; margin: 0 auto 12px;
-    }
+    .records-section { margin-top: 20px; padding-top: 12px; border-top: 2px solid #ecf0f1; }
+    .records-table { width: 100%; border-collapse: collapse; font-size: 10px; margin-top: 8px; }
+    .records-table th { background: #3498db; color: white; padding: 5px 3px; text-align: left; font-size: 9px; }
+    .records-table td { padding: 4px 3px; border-bottom: 1px solid #ecf0f1; max-width: 60px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .loading-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; }
+    .loading-content { background: white; padding: 20px; border-radius: 12px; text-align: center; }
+    .spinner { border: 3px solid #ecf0f1; border-top: 3px solid #3498db; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin: 0 auto 10px; }
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
-    /* 添加引导提示 */
-    .install-tip {
-      display: none;
-      background: #3498db;
-      color: white;
-      text-align: center;
-      padding: 8px;
-      font-size: 13px;
-      cursor: pointer;
-      position: sticky;
-      top: 0;
-      z-index: 100;
+    .quark-tip {
+      display: none; background: #3498db; color: white; text-align: center;
+      padding: 10px 15px; font-size: 13px; position: sticky; top: 0; z-index: 100;
+      line-height: 1.4;
     }
+    .quark-tip .close-tip { float: right; cursor: pointer; font-size: 16px; margin-left: 10px; }
   </style>
 </head>
 <body>
-  <!-- 安装引导 -->
-  <div class="install-tip" id="installTip" onclick="this.style.display='none'">
-    点击右上角 → "添加到主屏幕" 可快速访问
+  <div class="quark-tip" id="quarkTip">
+    点击底部 <strong>"三"</strong> 菜单 → <strong>"添加至桌面"</strong>
+    <span class="close-tip" onclick="document.getElementById('quarkTip').style.display='none'">✕</span>
   </div>
 
   <div class="container">
@@ -207,12 +130,12 @@
       </div>
       <div class="form-group">
         <label>联系人 *</label>
-        <input type="text" id="contactPerson" required placeholder="请输入联系人姓名" autocomplete="off">
+        <input type="text" id="contactPerson" required placeholder="请输入联系人" autocomplete="off">
       </div>
       <div class="form-group">
         <label>走访人 *</label>
         <select id="visitorName" required>
-          <option value="">请选择走访人</option>
+          <option value="">请选择</option>
           <option value="庄萍萍">庄萍萍</option>
           <option value="孙子沐">孙子沐</option>
           <option value="丁楠">丁楠</option>
@@ -221,22 +144,22 @@
       </div>
       <div class="form-group">
         <label>用户反映情况</label>
-        <textarea id="customerFeedback" placeholder="请输入用户反映的情况..."></textarea>
+        <textarea id="customerFeedback" placeholder="用户反映的情况..."></textarea>
       </div>
       <div class="form-group">
         <label>用户使用电信情况说明</label>
-        <textarea id="telecomUsage" placeholder="请输入电信业务使用情况..."></textarea>
+        <textarea id="telecomUsage" placeholder="电信业务使用情况..."></textarea>
       </div>
       <div class="form-group">
         <label>实时位置 * <span id="accuracyBadge"></span></label>
         <div class="location-box">
-          <input type="text" id="address" readonly placeholder="点击右侧获取精准位置">
+          <input type="text" id="address" readonly placeholder="点击获取精准位置">
           <button type="button" class="btn-location" id="locationBtn" onclick="getLocation()">定位</button>
         </div>
         <div class="location-info" id="locationDetail"></div>
         <div class="map-links">
-          <a href="#" id="amapLink" target="_blank" style="display:none;">高德</a>
-          <a href="#" id="baiduLink" target="_blank" style="display:none;">百度</a>
+          <a href="#" id="amapLink" target="_blank" style="display:none;">高德地图</a>
+          <a href="#" id="baiduLink" target="_blank" style="display:none;">百度地图</a>
         </div>
         <input type="hidden" id="latitude"><input type="hidden" id="longitude">
       </div>
@@ -262,11 +185,11 @@
     </form>
     <div class="status-message" id="statusMessage"></div>
     <div class="records-section">
-      <h3 style="color:#2c3e50;">历史记录 <span id="recordCount">(0条)</span></h3>
+      <h3 style="color:#2c3e50;font-size:16px;">历史记录 <span id="recordCount" style="font-size:12px;">(0条)</span></h3>
       <div style="overflow-x:auto;">
         <table class="records-table" id="recordsTable">
           <thead><tr><th>序号</th><th>时间</th><th>客户</th><th>联系</th><th>联系人</th><th>走访人</th><th>情况</th><th>电信</th><th>图</th><th>操作</th></tr></thead>
-          <tbody id="recordsBody"><tr><td colspan="10" style="text-align:center;padding:15px;">暂无记录</td></tr></tbody>
+          <tbody id="recordsBody"><tr><td colspan="10" style="text-align:center;padding:12px;">暂无记录</td></tr></tbody>
         </table>
       </div>
     </div>
@@ -276,20 +199,15 @@
   </div>
 
   <script>
-    // PWA安装引导
-    function showInstallTip() {
-      const isIOS = /iphone|ipad|ipod/.test(navigator.userAgent.toLowerCase());
-      const isAndroid = /android/.test(navigator.userAgent.toLowerCase());
+    function checkQuark() {
+      const ua = navigator.userAgent.toLowerCase();
+      const isQuark = ua.includes('quark') || ua.includes('quarkbrowser');
       const isStandalone = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone;
-      
-      if (!isStandalone) {
+      if (isQuark && !isStandalone) {
         setTimeout(() => {
-          document.getElementById('installTip').style.display = 'block';
-          if (isIOS) {
-            document.getElementById('installTip').textContent = '点击下方分享按钮 → "添加到主屏幕"';
-          }
-          setTimeout(() => { document.getElementById('installTip').style.display = 'none'; }, 5000);
-        }, 2000);
+          document.getElementById('quarkTip').style.display = 'block';
+          setTimeout(() => { document.getElementById('quarkTip').style.display = 'none'; }, 8000);
+        }, 1500);
       }
     }
 
@@ -300,7 +218,7 @@
     function initAMap() {
       if (typeof AMap !== 'undefined') {
         AMap.plugin(['AMap.Geolocation', 'AMap.Geocoder'], function() {
-          geolocation = new AMap.Geolocation({ enableHighAccuracy: true, timeout: 15000, maximumAge: 0, convert: true, showButton: false, showMarker: false, showCircle: true, panToLocation: false, zoomToAccuracy: true, useNative: true, extensions: 'all' });
+          geolocation = new AMap.Geolocation({ enableHighAccuracy: true, timeout: 15000, maximumAge: 0, convert: true, useNative: true, extensions: 'all' });
           geocoder = new AMap.Geocoder({ radius: 100, extensions: 'all' });
         });
       }
@@ -322,11 +240,11 @@
             if (s === 'complete' && r.regeocode) {
               const rc = r.regeocode, comp = rc.addressComponent;
               const road = (rc.roads||[])[0], poi = (rc.pois||[])[0];
-              let addr = (comp.district||'') + ' ' + (comp.township||'') + ' ';
-              if (road) { addr += road.name; if (road.distance) addr += `(${road.distance}米)`; if (poi) addr += ` 近${poi.name}`; }
+              let addr = (comp.district||'') + ' ' + (comp.township||'');
+              if (road) { addr += ' ' + road.name; if (road.distance) addr += `(${road.distance}米)`; if (poi) addr += ` 近${poi.name}`; }
               else addr = rc.formattedAddress;
               document.getElementById('address').value = addr;
-              document.getElementById('locationDetail').textContent = road ? `道路:${road.name} | 距离:${road.distance||'?'}米` : rc.formattedAddress;
+              document.getElementById('locationDetail').textContent = road ? `道路:${road.name} | ${road.distance||'?'}米` : rc.formattedAddress;
               state.currentLocation.address = addr; state.currentLocation.formattedAddress = rc.formattedAddress;
             }
             updateMapLinks(lat, lng); showMessage('定位成功','success');
@@ -406,11 +324,11 @@
     async function generateExcel() {
       const wb = new ExcelJS.Workbook(), ws = wb.addWorksheet('走访记录');
       const hdrs = ['序号','时间','客户名称','联系方式','联系人','走访人','反映情况','电信使用','地址','位置详情','完整地址','经度','纬度','地图','图1','图2','图3','图4','图5'];
-      ws.columns = hdrs.map((h,i) => ({ header:h, key:`c${i}`, width:[6,18,16,14,10,10,25,25,35,30,40,13,13,35,20,20,20,20,20][i] }));
-      ws.getRow(1).eachCell(c => { c.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFFFFFFF'}}; c.font={name:'微软雅黑',size:11,bold:true,color:{argb:'FF000000'}}; c.alignment={horizontal:'center',vertical:'middle',wrapText:true}; c.border={top:{style:'thin',color:{argb:'FF000000'}},bottom:{style:'thin',color:{argb:'FF000000'}},left:{style:'thin',color:{argb:'FF000000'}},right:{style:'thin',color:{argb:'FF000000'}}}; });
+      ws.columns = hdrs.map((h,i) => ({ header:h, width:[6,18,16,14,10,10,25,25,35,30,40,13,13,35,20,20,20,20,20][i] }));
+      ws.getRow(1).eachCell(c => { c.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFFFFFFF'}}; c.font={name:'微软雅黑',size:11,bold:true,color:{argb:'FF000000'}}; c.alignment={horizontal:'center',vertical:'middle',wrapText:true}; c.border={top:{style:'thin'},bottom:{style:'thin'},left:{style:'thin'},right:{style:'thin'}}; });
       for (let i = 0; i < allRecords.length; i++) {
         const r = allRecords[i], row = ws.getRow(i+2);
-        [i+1, r.time, r.customerName, r.customerContact, r.contactPerson, r.visitorName, r.customerFeedback, r.telecomUsage, r.address, r.addressDetail, r.formattedAddress, r.latitude, r.longitude, r.mapLink].forEach((v,j) => { const cl = row.getCell(j+1); cl.value = v||''; cl.font = {name:'微软雅黑',size:10,color:{argb:'FF000000'}}; cl.alignment = {vertical:'middle',wrapText:true}; cl.fill = {type:'pattern',pattern:'solid',fgColor:{argb:'FFFFFFFF'}}; cl.border = {top:{style:'thin',color:{argb:'FF000000'}},bottom:{style:'thin',color:{argb:'FF000000'}},left:{style:'thin',color:{argb:'FF000000'}},right:{style:'thin',color:{argb:'FF000000'}}}; });
+        [i+1, r.time, r.customerName, r.customerContact, r.contactPerson, r.visitorName, r.customerFeedback, r.telecomUsage, r.address, r.addressDetail, r.formattedAddress, r.latitude, r.longitude, r.mapLink].forEach((v,j) => { const cl = row.getCell(j+1); cl.value = v||''; cl.font = {name:'微软雅黑',size:10,color:{argb:'FF000000'}}; cl.alignment = {vertical:'middle',wrapText:true}; cl.fill = {type:'pattern',pattern:'solid',fgColor:{argb:'FFFFFFFF'}}; cl.border = {top:{style:'thin'},bottom:{style:'thin'},left:{style:'thin'},right:{style:'thin'}}; });
         if (r.images && r.images.length > 0) {
           row.height = Math.max(100, r.images.length * 80);
           for (let j = 0; j < r.images.length; j++) {
@@ -423,7 +341,7 @@
               ws.addImage(imgId, { tl: { col: 14+j, row: i+1 }, ext: { width: 120, height: 120 * (sz.height/sz.width) }, editAs: 'oneCell' });
             } catch(err) { row.getCell(15+j).value = '加载失败'; }
           }
-        } else { row.height = 25; }
+        } else { row.height = 22; }
       }
       ws.views = [{ state:'frozen', ySplit:1 }];
       const buf = await wb.xlsx.writeBuffer();
@@ -469,22 +387,16 @@
     function renderTable() {
       document.getElementById('recordCount').textContent = `(${allRecords.length}条)`;
       const tb = document.getElementById('recordsBody');
-      if (!allRecords.length) { tb.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:15px;">暂无记录</td></tr>'; return; }
-      tb.innerHTML = allRecords.map((r,i) => `<tr><td>${i+1}</td><td>${r.time.substring(5)}</td><td>${r.customerName}</td><td>${r.customerContact}</td><td>${r.contactPerson}</td><td>${r.visitorName}</td><td>${(r.customerFeedback||'').substring(0,6)}..</td><td>${(r.telecomUsage||'').substring(0,6)}..</td><td>${r.imageCount||0}</td><td><button onclick="deleteRecord(${r.id})" style="background:#e74c3c;color:white;border:none;padding:3px 6px;border-radius:4px;font-size:10px;">删</button></td></tr>`).join('');
+      if (!allRecords.length) { tb.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:12px;">暂无记录</td></tr>'; return; }
+      tb.innerHTML = allRecords.map((r,i) => `<tr><td>${i+1}</td><td>${r.time.substring(5,16)}</td><td>${r.customerName.substring(0,6)}</td><td>${r.customerContact}</td><td>${(r.contactPerson||'').substring(0,4)}</td><td>${r.visitorName}</td><td>${(r.customerFeedback||'').substring(0,4)}..</td><td>${(r.telecomUsage||'').substring(0,4)}..</td><td>${r.imageCount||0}</td><td><button onclick="deleteRecord(${r.id})" style="background:#e74c3c;color:white;border:none;padding:2px 5px;border-radius:3px;font-size:9px;">删</button></td></tr>`).join('');
     }
     function deleteRecord(id) { if (!confirm('删除？')) return; allRecords = allRecords.filter(r=>r.id!==id); localStorage.setItem('visitRecords', JSON.stringify(allRecords)); renderTable(); }
     function clearAllRecords() { if (!allRecords.length) return; if (confirm('清空全部？')) { allRecords=[]; localStorage.removeItem('visitRecords'); renderTable(); } }
     function resetForm() { ['customerName','customerContact','contactPerson','visitorName','customerFeedback','telecomUsage','address'].forEach(id=>document.getElementById(id).value=''); document.getElementById('locationDetail').textContent=''; document.getElementById('latitude').value=''; document.getElementById('longitude').value=''; document.getElementById('amapLink').style.display='none'; document.getElementById('baiduLink').style.display='none'; document.getElementById('accuracyBadge').innerHTML=''; state.images=[]; state.imageSizes=[]; state.currentLocation=null; refreshImages(); updateImageCount(); }
-    function previewData() { showMessage(JSON.stringify({客户:document.getElementById('customerName').value||'未填',联系方式:document.getElementById('customerContact').value||'未填',联系人:document.getElementById('contactPerson').value||'未填',走访人:document.getElementById('visitorName').value||'未选',图片:state.images.length+'张'},null,2),'info'); }
+    function previewData() { showMessage(JSON.stringify({客户:document.getElementById('customerName').value||'未填',联系方式:document.getElementById('customerContact').value||'未填',走访人:document.getElementById('visitorName').value||'未选',图片:state.images.length+'张'},null,2),'info'); }
     function showMessage(m,t) { const el=document.getElementById('statusMessage'); el.textContent=m; el.className='status-message '+t; setTimeout(()=>{el.style.display='none';},4000); }
 
-    const uc=document.getElementById('imageContainer');
-    ['dragenter','dragover','dragleave','drop'].forEach(ev=>uc.addEventListener(ev,e=>{e.preventDefault();e.stopPropagation();}));
-    ['dragenter','dragover'].forEach(ev=>uc.addEventListener(ev,()=>uc.classList.add('drag-over')));
-    ['dragleave','drop'].forEach(ev=>uc.addEventListener(ev,()=>uc.classList.remove('drag-over')));
-    uc.addEventListener('drop',e=>{if(e.dataTransfer.files.length)handleFileSelect({target:{files:e.dataTransfer.files,value:''}});});
-
-    window.onload=function(){initAMap();updateImageCount();renderTable();showInstallTip();setTimeout(getLocation,2000);};
+    window.onload=function(){initAMap();updateImageCount();renderTable();checkQuark();setTimeout(getLocation,2000);};
   </script>
 </body>
 </html>
