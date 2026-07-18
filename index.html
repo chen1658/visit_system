@@ -57,6 +57,7 @@
     .btn-location { background: #27ae60; color: white; white-space: nowrap; }
     .btn-location:disabled { background: #95a5a6; }
     .btn-danger { background: #e74c3c; color: white; }
+    .btn-download { background: #f39c12; color: white; }
     .image-upload-container {
       display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px;
       min-height: 80px; padding: 10px; border: 2px dashed #bdc3c7;
@@ -103,20 +104,15 @@
     .loading-content { background: white; padding: 20px; border-radius: 12px; text-align: center; }
     .spinner { border: 3px solid #ecf0f1; border-top: 3px solid #3498db; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin: 0 auto 10px; }
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-    .quark-tip {
-      display: none; background: #3498db; color: white; text-align: center;
-      padding: 10px 15px; font-size: 13px; position: sticky; top: 0; z-index: 100;
-      line-height: 1.4;
+    .unsaved-badge {
+      display: inline-block; background: #e74c3c; color: white;
+      padding: 2px 6px; border-radius: 4px; font-size: 9px; margin-left: 5px;
+      animation: pulse 1.5s infinite;
     }
-    .quark-tip .close-tip { float: right; cursor: pointer; font-size: 16px; margin-left: 10px; }
+    @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.5; } }
   </style>
 </head>
 <body>
-  <div class="quark-tip" id="quarkTip">
-    点击底部 <strong>"三"</strong> 菜单 → <strong>"添加至桌面"</strong>
-    <span class="close-tip" onclick="document.getElementById('quarkTip').style.display='none'">✕</span>
-  </div>
-
   <div class="container">
     <h2>客户走访记录</h2>
     <form id="visitForm">
@@ -174,18 +170,18 @@
         <div class="upload-progress" id="uploadProgress"><div class="progress-bar" id="progressBar" style="width:0%"></div></div>
       </div>
       <div class="btn-group">
-        <button type="submit" class="btn-primary" style="flex:2;">提交并下载Excel</button>
+        <button type="submit" class="btn-primary" style="flex:2;">保存记录</button>
+        <button type="button" class="btn-download" onclick="downloadExcel()" style="flex:1;">下载Excel</button>
         <button type="button" class="btn-secondary" onclick="clearImages()">清空图片</button>
       </div>
       <div class="btn-group">
-        <button type="button" class="btn-secondary" onclick="downloadExcel()" style="flex:1;">下载Excel</button>
         <button type="button" class="btn-secondary" onclick="previewData()" style="flex:1;">预览</button>
-        <button type="button" class="btn-danger" onclick="clearAllRecords()" style="flex:1;">清空</button>
+        <button type="button" class="btn-danger" onclick="clearAllRecords()" style="flex:1;">清空记录</button>
       </div>
     </form>
     <div class="status-message" id="statusMessage"></div>
     <div class="records-section">
-      <h3 style="color:#2c3e50;font-size:16px;">历史记录 <span id="recordCount" style="font-size:12px;">(0条)</span></h3>
+      <h3 style="color:#2c3e50;font-size:16px;">历史记录 <span id="recordCount" style="font-size:12px;">(0条)</span><span class="unsaved-badge" id="unsavedBadge" style="display:none;">未下载</span></h3>
       <div style="overflow-x:auto;">
         <table class="records-table" id="recordsTable">
           <thead><tr><th>序号</th><th>时间</th><th>客户</th><th>联系</th><th>联系人</th><th>走访人</th><th>情况</th><th>电信</th><th>图</th><th>操作</th></tr></thead>
@@ -195,24 +191,13 @@
     </div>
   </div>
   <div class="loading-overlay" id="loadingOverlay">
-    <div class="loading-content"><div class="spinner"></div><p>生成Excel中...</p></div>
+    <div class="loading-content"><div class="spinner"></div><p id="loadingText">生成Excel中...</p></div>
   </div>
 
   <script>
-    function checkQuark() {
-      const ua = navigator.userAgent.toLowerCase();
-      const isQuark = ua.includes('quark') || ua.includes('quarkbrowser');
-      const isStandalone = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone;
-      if (isQuark && !isStandalone) {
-        setTimeout(() => {
-          document.getElementById('quarkTip').style.display = 'block';
-          setTimeout(() => { document.getElementById('quarkTip').style.display = 'none'; }, 8000);
-        }, 1500);
-      }
-    }
-
     const state = { images: [], imageSizes: [], maxImages: 5, minImages: 3, currentLocation: null, isProcessing: false };
     let allRecords = JSON.parse(localStorage.getItem('visitRecords') || '[]');
+    let downloadedIds = JSON.parse(localStorage.getItem('downloadedIds') || '[]');
     let geolocation, geocoder;
     
     function initAMap() {
@@ -321,7 +306,19 @@
     function refreshImages() { const c = document.getElementById('imageContainer'); c.querySelectorAll('.image-item').forEach(e=>e.remove()); state.images.forEach(img=>renderPreview(img)); document.getElementById('uploadBtn').style.display = state.images.length < state.maxImages ? 'flex':'none'; }
     function updateImageCount() { const el = document.getElementById('imageCount'); el.textContent = `${state.images.length}/${state.maxImages}`; el.style.background = state.images.length >= state.minImages ? '#27ae60' : state.images.length > 0 ? '#f39c12' : '#3498db'; }
 
+    function updateUnsavedBadge() {
+      const badge = document.getElementById('unsavedBadge');
+      const unsavedCount = allRecords.filter(r => !downloadedIds.includes(r.id)).length;
+      if (unsavedCount > 0) {
+        badge.textContent = `${unsavedCount}条未下载`;
+        badge.style.display = 'inline-block';
+      } else {
+        badge.style.display = 'none';
+      }
+    }
+
     async function generateExcel() {
+      document.getElementById('loadingText').textContent = '生成Excel中...';
       const wb = new ExcelJS.Workbook(), ws = wb.addWorksheet('走访记录');
       const hdrs = ['序号','时间','客户名称','联系方式','联系人','走访人','反映情况','电信使用','地址','位置详情','完整地址','经度','纬度','地图','图1','图2','图3','图4','图5'];
       ws.columns = hdrs.map((h,i) => ({ header:h, width:[6,18,16,14,10,10,25,25,35,30,40,13,13,35,20,20,20,20,20][i] }));
@@ -349,6 +346,9 @@
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a'); a.href = url; a.download = `走访记录_${new Date().toISOString().slice(0,10)}.xlsx`; a.click();
       URL.revokeObjectURL(url);
+      downloadedIds = allRecords.map(r => r.id);
+      localStorage.setItem('downloadedIds', JSON.stringify(downloadedIds));
+      updateUnsavedBadge();
     }
 
     document.getElementById('visitForm').addEventListener('submit', async function(e) {
@@ -376,27 +376,45 @@
       };
       allRecords.push(record);
       localStorage.setItem('visitRecords', JSON.stringify(allRecords));
+      renderTable(); resetForm();
+      updateUnsavedBadge();
+      showMessage('记录已保存','success');
+    });
+
+    async function downloadExcel() {
+      if (!allRecords.length) { showMessage('暂无记录可下载','error'); return; }
       document.getElementById('loadingOverlay').style.display = 'flex';
       await generateExcel();
       document.getElementById('loadingOverlay').style.display = 'none';
-      renderTable(); resetForm();
-      showMessage('已保存','success');
-    });
+      showMessage('Excel已下载','success');
+    }
 
-    async function downloadExcel() { if (!allRecords.length) { showMessage('暂无记录','error'); return; } document.getElementById('loadingOverlay').style.display = 'flex'; await generateExcel(); document.getElementById('loadingOverlay').style.display = 'none'; }
     function renderTable() {
       document.getElementById('recordCount').textContent = `(${allRecords.length}条)`;
       const tb = document.getElementById('recordsBody');
       if (!allRecords.length) { tb.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:12px;">暂无记录</td></tr>'; return; }
-      tb.innerHTML = allRecords.map((r,i) => `<tr><td>${i+1}</td><td>${r.time.substring(5,16)}</td><td>${r.customerName.substring(0,6)}</td><td>${r.customerContact}</td><td>${(r.contactPerson||'').substring(0,4)}</td><td>${r.visitorName}</td><td>${(r.customerFeedback||'').substring(0,4)}..</td><td>${(r.telecomUsage||'').substring(0,4)}..</td><td>${r.imageCount||0}</td><td><button onclick="deleteRecord(${r.id})" style="background:#e74c3c;color:white;border:none;padding:2px 5px;border-radius:3px;font-size:9px;">删</button></td></tr>`).join('');
+      tb.innerHTML = allRecords.map((r,i) => {
+        const isDownloaded = downloadedIds.includes(r.id);
+        const rowStyle = isDownloaded ? '' : 'background:#fffbf0;';
+        return `<tr style="${rowStyle}"><td>${i+1}</td><td>${r.time.substring(5,16)}</td><td>${r.customerName.substring(0,6)}</td><td>${r.customerContact}</td><td>${(r.contactPerson||'').substring(0,4)}</td><td>${r.visitorName}</td><td>${(r.customerFeedback||'').substring(0,4)}..</td><td>${(r.telecomUsage||'').substring(0,4)}..</td><td>${r.imageCount||0}${isDownloaded?'':' *'}</td><td><button onclick="deleteRecord(${r.id})" style="background:#e74c3c;color:white;border:none;padding:2px 5px;border-radius:3px;font-size:9px;">删</button></td></tr>`;
+      }).join('');
     }
-    function deleteRecord(id) { if (!confirm('删除？')) return; allRecords = allRecords.filter(r=>r.id!==id); localStorage.setItem('visitRecords', JSON.stringify(allRecords)); renderTable(); }
-    function clearAllRecords() { if (!allRecords.length) return; if (confirm('清空全部？')) { allRecords=[]; localStorage.removeItem('visitRecords'); renderTable(); } }
+
+    function deleteRecord(id) {
+      if (!confirm('删除？')) return;
+      allRecords = allRecords.filter(r=>r.id!==id);
+      downloadedIds = downloadedIds.filter(did=>did!==id);
+      localStorage.setItem('visitRecords', JSON.stringify(allRecords));
+      localStorage.setItem('downloadedIds', JSON.stringify(downloadedIds));
+      renderTable();
+      updateUnsavedBadge();
+    }
+    function clearAllRecords() { if (!allRecords.length) return; if (confirm('清空全部？')) { allRecords=[]; downloadedIds=[]; localStorage.removeItem('visitRecords'); localStorage.removeItem('downloadedIds'); renderTable(); updateUnsavedBadge(); } }
     function resetForm() { ['customerName','customerContact','contactPerson','visitorName','customerFeedback','telecomUsage','address'].forEach(id=>document.getElementById(id).value=''); document.getElementById('locationDetail').textContent=''; document.getElementById('latitude').value=''; document.getElementById('longitude').value=''; document.getElementById('amapLink').style.display='none'; document.getElementById('baiduLink').style.display='none'; document.getElementById('accuracyBadge').innerHTML=''; state.images=[]; state.imageSizes=[]; state.currentLocation=null; refreshImages(); updateImageCount(); }
-    function previewData() { showMessage(JSON.stringify({客户:document.getElementById('customerName').value||'未填',联系方式:document.getElementById('customerContact').value||'未填',走访人:document.getElementById('visitorName').value||'未选',图片:state.images.length+'张'},null,2),'info'); }
+    function previewData() { showMessage(JSON.stringify({客户:document.getElementById('customerName').value||'未填',联系方式:document.getElementById('customerContact').value||'未填',走访人:document.getElementById('visitorName').value||'未选',图片:state.images.length+'张',未下载记录:allRecords.filter(r=>!downloadedIds.includes(r.id)).length+'条'},null,2),'info'); }
     function showMessage(m,t) { const el=document.getElementById('statusMessage'); el.textContent=m; el.className='status-message '+t; setTimeout(()=>{el.style.display='none';},4000); }
 
-    window.onload=function(){initAMap();updateImageCount();renderTable();checkQuark();setTimeout(getLocation,2000);};
+    window.onload=function(){initAMap();updateImageCount();renderTable();updateUnsavedBadge();setTimeout(getLocation,2000);};
   </script>
 </body>
 </html>
