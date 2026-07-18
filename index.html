@@ -24,7 +24,7 @@
     input:focus, select:focus, textarea:focus { border-color: #3498db; outline: none; background: white; }
     input[readonly] { background: #f0f3f5; color: #2c3e50; }
     textarea { resize: vertical; min-height: 65px; }
-    .location-box { display: flex; gap: 8px; }
+    .location-box { display: flex; gap: 8px; position: relative; }
     .location-box input { flex: 1; }
     button { padding: 10px 14px; border: none; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 600; -webkit-tap-highlight-color: transparent; }
     button:active { transform: scale(0.96); }
@@ -61,6 +61,17 @@
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     .unsaved-badge { display: inline-block; background: #e74c3c; color: white; padding: 2px 6px; border-radius: 4px; font-size: 9px; margin-left: 5px; animation: pulse 1.5s infinite; }
     @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.5; } }
+    .poi-selector {
+      position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid #ccc;
+      border-radius: 8px; max-height: 200px; overflow-y: auto; z-index: 10; display: none;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    .poi-item {
+      padding: 10px 12px; border-bottom: 1px solid #f0f0f0; cursor: pointer; font-size: 13px;
+    }
+    .poi-item:last-child { border-bottom: none; }
+    .poi-item:hover, .poi-item:active { background: #f0f7ff; }
+    .poi-item .poi-addr { font-size: 11px; color: #999; margin-top: 2px; }
   </style>
 </head>
 <body>
@@ -75,11 +86,11 @@
       <div class="form-group"><label>用户使用电信情况说明</label><textarea id="telecomUsage" placeholder="电信业务使用情况..."></textarea></div>
       <div class="form-group">
         <label>实时位置 *</label>
-        <div class="location-box">
-          <input type="text" id="address" readonly placeholder="点击获取位置">
+        <div class="location-box" id="locationBox">
+          <input type="text" id="address" readonly placeholder="点击获取位置后选择附近地点">
           <button type="button" class="btn-location" id="locationBtn" onclick="getLocation()">定位</button>
+          <div class="poi-selector" id="poiSelector"></div>
         </div>
-        <div class="location-info" id="locationDetail"></div>
         <div class="map-links">
           <a href="#" id="amapLink" target="_blank" style="display:none;">高德地图</a>
           <a href="#" id="baiduLink" target="_blank" style="display:none;">百度地图</a>
@@ -120,23 +131,16 @@
   </div>
 
   <script>
-    // ========== 配置：替换为你的高德Web服务密钥 ==========
-    var AMAP_WEB_KEY = '0fbf2cb3e705e9c632e3c466253637e0'; // 请替换为你申请的Web服务密钥
-
+    var AMAP_WEB_KEY = '0fbf2cb3e705e9c632e3c466253637e0'; // 替换为你的Web服务密钥
     var state = { images: [], imageSizes: [], maxImages: 5, minImages: 3, currentLocation: null, isProcessing: false };
     var allRecords = JSON.parse(localStorage.getItem('visitRecords') || '[]');
     var downloadedIds = JSON.parse(localStorage.getItem('downloadedIds') || '[]');
 
-    // 定位函数：浏览器原生定位 + 高德Web服务API逆地理编码
     function getLocation() {
-      if (!navigator.geolocation) {
-        showMessage('浏览器不支持定位', 'error');
-        return;
-      }
+      if (!navigator.geolocation) { showMessage('浏览器不支持定位', 'error'); return; }
       var btn = document.getElementById('locationBtn');
       btn.disabled = true; btn.textContent = '定位中...';
       showMessage('获取位置中...', 'info');
-
       navigator.geolocation.getCurrentPosition(
         function(position) {
           var lat = position.coords.latitude;
@@ -145,14 +149,11 @@
           document.getElementById('latitude').value = lat.toFixed(8);
           document.getElementById('longitude').value = lng.toFixed(8);
 
-          // 使用高德Web服务API逆地理编码（JSONP方式）
           var url = 'https://restapi.amap.com/v3/geocode/regeo?output=JSON&location=' + lng + ',' + lat + '&key=' + AMAP_WEB_KEY + '&radius=1000&extensions=all';
           jsonpRequest(url, 'amapCallback', function(data) {
             btn.disabled = false; btn.textContent = '重新定位';
             if (data.status === '1' && data.regeocode) {
-              parseGeoResult(data.regeocode, lat, lng);
-              updateMapLinks(lat, lng);
-              showMessage('定位成功', 'success');
+              showPoiSelector(data.regeocode, lat, lng);
             } else {
               showMessage('获取地址失败，已记录坐标', 'info');
               useCoordinateOnly(lat, lng);
@@ -177,91 +178,70 @@
       );
     }
 
-    // JSONP请求封装
     function jsonpRequest(url, callbackName, success, error) {
       var script = document.createElement('script');
-      var timeoutTimer = setTimeout(function() {
-        cleanup();
-        if (error) error();
-      }, 10000);
-
-      window[callbackName] = function(data) {
-        cleanup();
-        if (success) success(data);
-      };
-
+      var timeoutTimer = setTimeout(function() { cleanup(); if (error) error(); }, 10000);
+      window[callbackName] = function(data) { cleanup(); if (success) success(data); };
       script.src = url + (url.indexOf('?') >= 0 ? '&' : '?') + 'callback=' + callbackName;
-      script.onerror = function() {
-        cleanup();
-        if (error) error();
-      };
+      script.onerror = function() { cleanup(); if (error) error(); };
       document.head.appendChild(script);
-
-      function cleanup() {
-        clearTimeout(timeoutTimer);
-        if (script.parentNode) script.parentNode.removeChild(script);
-        delete window[callbackName];
-      }
+      function cleanup() { clearTimeout(timeoutTimer); if (script.parentNode) script.parentNode.removeChild(script); delete window[callbackName]; }
     }
 
-    // 解析高德逆地理编码结果
-    function parseGeoResult(regeo, lat, lng) {
-      var comp = regeo.addressComponent;
-      var roads = regeo.roads || [];
+    function showPoiSelector(regeo, lat, lng) {
       var pois = regeo.pois || [];
-      var sn = comp.streetNumber || {};
-      var street = sn.street || '';
-      var number = sn.number || '';
-      var direction = sn.direction || '';
-      var district = comp.district || '';
-      var township = comp.township || '';
-      var province = comp.province || '';
-      var city = comp.city || '';
-      var neighborhood = comp.neighborhood || {};
-      var building = comp.building || {};
-      var businessAreas = comp.businessAreas || [];
+      var formattedAddress = regeo.formattedAddress;
+      var selector = document.getElementById('poiSelector');
+      selector.innerHTML = '';
 
-      var address = '';
-      var detailParts = [];
-
-      if (roads.length > 0) {
-        var road = roads[0];
-        address = province + city + district + township + ' ' + direction + road.name;
-        if (road.distance) address += ' 约' + road.distance + '米';
-        if (street && number) address += ' (' + street + number + '号)';
-        detailParts.push('道路: ' + road.name + (road.distance ? ' 约' + road.distance + '米' : ''));
-      } else if (street && number) {
-        address = province + city + district + township + ' ' + direction + street + number + '号';
-        detailParts.push('地址: ' + street + number + '号');
-      } else {
-        address = regeo.formattedAddress;
+      if (pois.length === 0) {
+        setAddress(formattedAddress, lat, lng);
+        return;
       }
 
-      if (direction) detailParts.push('方位: ' + direction + '方向');
-      if (neighborhood.name) detailParts.push('小区: ' + neighborhood.name);
-      if (building.name) detailParts.push('楼栋: ' + building.name);
-      if (pois.length > 0) {
-        var poiText = pois.slice(0, 5).map(function(p) {
-          return p.name + '(' + p.distance + '米' + (p.direction || '') + ')';
-        }).join(' | ');
-        detailParts.push('周边: ' + poiText);
-      }
-      if (businessAreas.length > 0) detailParts.push('商圈: ' + businessAreas.join('、'));
+      var useCoordDiv = document.createElement('div');
+      useCoordDiv.className = 'poi-item';
+      useCoordDiv.innerHTML = '<strong>使用当前坐标</strong><div class="poi-addr">' + formattedAddress + '</div>';
+      useCoordDiv.onclick = function() {
+        setAddress(formattedAddress, lat, lng);
+        selector.style.display = 'none';
+      };
+      selector.appendChild(useCoordDiv);
 
-      document.getElementById('address').value = address;
-      document.getElementById('locationDetail').textContent = detailParts.join('\n');
-      state.currentLocation.address = address;
-      state.currentLocation.addressDetail = detailParts.join(' | ');
-      state.currentLocation.formattedAddress = regeo.formattedAddress;
+      for (var i = 0; i < Math.min(pois.length, 8); i++) {
+        (function(poi) {
+          var div = document.createElement('div');
+          div.className = 'poi-item';
+          div.innerHTML = '<strong>' + poi.name + '</strong><div class="poi-addr">' + (poi.address || '') + ' | ' + poi.distance + '米</div>';
+          div.onclick = function() {
+            setAddress(poi.name, lat, lng);
+            selector.style.display = 'none';
+          };
+          selector.appendChild(div);
+        })(pois[i]);
+      }
+
+      selector.style.display = 'block';
+
+      document.addEventListener('click', function closeSelector(e) {
+        if (!document.getElementById('locationBox').contains(e.target)) {
+          selector.style.display = 'none';
+          document.removeEventListener('click', closeSelector);
+        }
+      }, { once: true });
+    }
+
+    function setAddress(addressText, lat, lng) {
+      document.getElementById('address').value = addressText;
+      state.currentLocation.address = addressText;
+      state.currentLocation.formattedAddress = addressText;
+      updateMapLinks(lat, lng);
+      showMessage('已选择: ' + addressText, 'success');
     }
 
     function useCoordinateOnly(lat, lng) {
-      var text = lat.toFixed(6) + ', ' + lng.toFixed(6);
-      document.getElementById('address').value = '坐标: ' + text;
-      document.getElementById('locationDetail').textContent = '已记录坐标';
-      state.currentLocation.address = '坐标: ' + text;
-      state.currentLocation.formattedAddress = text;
-      state.currentLocation.addressDetail = '';
+      var text = '坐标: ' + lat.toFixed(6) + ', ' + lng.toFixed(6);
+      setAddress(text, lat, lng);
     }
 
     function updateMapLinks(lat, lng) {
@@ -272,7 +252,6 @@
       document.getElementById('baiduLink').style.display = 'inline';
     }
 
-    // 图片压缩
     function compressImage(file, maxW, q) {
       maxW = maxW || 1200; q = q || 0.8;
       return new Promise(function(resolve) {
@@ -336,12 +315,21 @@
     async function generateExcel() {
       document.getElementById('loadingText').textContent = '生成Excel中...';
       var wb = new ExcelJS.Workbook(), ws = wb.addWorksheet('走访记录');
-      var hdrs = ['序号','时间','客户名称','联系方式','联系人','走访人','反映情况','电信使用','地址','位置详情','完整地址','经度','纬度','地图','图1','图2','图3','图4','图5'];
-      ws.columns = hdrs.map(function(h,i){ return { header:h, width:[6,18,16,14,10,10,25,25,35,40,40,13,13,35,20,20,20,20,20][i] }; });
+      var hdrs = ['序号','记录时间','客户名称','联系方式','联系人','走访人','用户反映情况','用户使用电信情况说明','地址','图片1','图片2','图片3','图片4','图片5'];
+      var colWidths = [6,20,18,15,12,10,35,35,40,20,20,20,20,20];
+      ws.columns = hdrs.map(function(h,i){ return { header:h, width:colWidths[i] }; });
       ws.getRow(1).eachCell(function(c){ c.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFFFFFFF'}}; c.font={name:'微软雅黑',size:11,bold:true,color:{argb:'FF000000'}}; c.alignment={horizontal:'center',vertical:'middle',wrapText:true}; c.border={top:{style:'thin'},bottom:{style:'thin'},left:{style:'thin'},right:{style:'thin'}}; });
       for (var i = 0; i < allRecords.length; i++) {
         var r = allRecords[i], row = ws.getRow(i+2);
-        [i+1, r.time, r.customerName, r.customerContact, r.contactPerson, r.visitorName, r.customerFeedback, r.telecomUsage, r.address, r.addressDetail, r.formattedAddress, r.latitude, r.longitude, r.mapLink].forEach(function(v,j){ var cl = row.getCell(j+1); cl.value = v||''; cl.font = {name:'微软雅黑',size:10,color:{argb:'FF000000'}}; cl.alignment = {vertical:'middle',wrapText:true}; cl.fill = {type:'pattern',pattern:'solid',fgColor:{argb:'FFFFFFFF'}}; cl.border = {top:{style:'thin'},bottom:{style:'thin'},left:{style:'thin'},right:{style:'thin'}}; });
+        var rowData = [i+1, r.time, r.customerName, r.customerContact, r.contactPerson, r.visitorName, r.customerFeedback, r.telecomUsage, r.address];
+        for (var j = 0; j < rowData.length; j++) {
+          var cell = row.getCell(j+1);
+          cell.value = rowData[j] || '';
+          cell.font = {name:'微软雅黑',size:10,color:{argb:'FF000000'}};
+          cell.alignment = {vertical:'middle',wrapText:true};
+          cell.fill = {type:'pattern',pattern:'solid',fgColor:{argb:'FFFFFFFF'}};
+          cell.border = {top:{style:'thin'},bottom:{style:'thin'},left:{style:'thin'},right:{style:'thin'}};
+        }
         if (r.images && r.images.length > 0) {
           row.height = Math.max(100, r.images.length * 80);
           for (var j = 0; j < r.images.length; j++) {
@@ -351,8 +339,8 @@
               for (var k = 0; k < bin.length; k++) bytes[k] = bin.charCodeAt(k);
               var imgId = wb.addImage({ buffer: bytes.buffer, extension:'jpeg' });
               var sz = r.imageSizes ? r.imageSizes[j] : { width:800, height:600 };
-              ws.addImage(imgId, { tl: { col: 14+j, row: i+1 }, ext: { width: 120, height: 120 * (sz.height/sz.width) }, editAs: 'oneCell' });
-            } catch(err) { row.getCell(15+j).value = '加载失败'; }
+              ws.addImage(imgId, { tl: { col: 9+j, row: i+1 }, ext: { width: 120, height: 120 * (sz.height/sz.width) }, editAs: 'oneCell' });
+            } catch(err) { row.getCell(10+j).value = '加载失败'; }
           }
         } else { row.height = 22; }
       }
@@ -373,21 +361,20 @@
       var cc = document.getElementById('customerContact').value.trim();
       var cp = document.getElementById('contactPerson').value.trim();
       var vn = document.getElementById('visitorName').value;
+      var cf = document.getElementById('customerFeedback').value.trim();
+      var tu = document.getElementById('telecomUsage').value.trim();
       if (!cn) { showMessage('请输入客户名称','error'); return; }
       if (!cc) { showMessage('请输入联系方式','error'); return; }
       if (!cp) { showMessage('请输入联系人','error'); return; }
       if (!vn) { showMessage('请选择走访人','error'); return; }
       if (state.images.length < state.minImages) { showMessage('至少' + state.minImages + '张图片','error'); return; }
-      if (!state.currentLocation) { showMessage('请获取位置','error'); return; }
+      if (!state.currentLocation || !state.currentLocation.address) { showMessage('请获取位置','error'); return; }
       var record = {
         id: Date.now(), time: new Date().toLocaleString('zh-CN'),
         customerName: cn, customerContact: cc, contactPerson: cp, visitorName: vn,
-        customerFeedback: document.getElementById('customerFeedback').value.trim(),
-        telecomUsage: document.getElementById('telecomUsage').value.trim(),
-        address: state.currentLocation.address||'', addressDetail: state.currentLocation.addressDetail||'',
-        formattedAddress: state.currentLocation.formattedAddress||'',
+        customerFeedback: cf, telecomUsage: tu,
+        address: state.currentLocation.address||'',
         latitude: state.currentLocation.lat, longitude: state.currentLocation.lng,
-        mapLink: 'https://uri.amap.com/marker?position=' + state.currentLocation.lng + ',' + state.currentLocation.lat + '&name=' + encodeURIComponent(state.currentLocation.address||''),
         images: state.images.slice(), imageSizes: state.imageSizes.slice(), imageCount: state.images.length
       };
       allRecords.push(record);
@@ -410,7 +397,7 @@
 
     function deleteRecord(id) { if (!confirm('删除？')) return; allRecords = allRecords.filter(function(r){return r.id!==id;}); downloadedIds = downloadedIds.filter(function(d){return d!==id;}); localStorage.setItem('visitRecords', JSON.stringify(allRecords)); localStorage.setItem('downloadedIds', JSON.stringify(downloadedIds)); renderTable(); updateUnsavedBadge(); }
     function clearAllRecords() { if (!allRecords.length) return; if (confirm('清空全部？')) { allRecords=[]; downloadedIds=[]; localStorage.removeItem('visitRecords'); localStorage.removeItem('downloadedIds'); renderTable(); updateUnsavedBadge(); } }
-    function resetForm() { ['customerName','customerContact','contactPerson','visitorName','customerFeedback','telecomUsage','address'].forEach(function(id){document.getElementById(id).value='';}); document.getElementById('locationDetail').textContent=''; document.getElementById('latitude').value=''; document.getElementById('longitude').value=''; document.getElementById('amapLink').style.display='none'; document.getElementById('baiduLink').style.display='none'; state.images=[]; state.imageSizes=[]; state.currentLocation=null; refreshImages(); updateImageCount(); }
+    function resetForm() { ['customerName','customerContact','contactPerson','visitorName','customerFeedback','telecomUsage','address'].forEach(function(id){document.getElementById(id).value='';}); document.getElementById('latitude').value=''; document.getElementById('longitude').value=''; document.getElementById('amapLink').style.display='none'; document.getElementById('baiduLink').style.display='none'; state.images=[]; state.imageSizes=[]; state.currentLocation=null; refreshImages(); updateImageCount(); }
     function previewData() { showMessage(JSON.stringify({客户:document.getElementById('customerName').value||'未填',联系方式:document.getElementById('customerContact').value||'未填',走访人:document.getElementById('visitorName').value||'未选',图片:state.images.length+'张'},null,2),'info'); }
     function showMessage(m,t) { var el=document.getElementById('statusMessage'); el.textContent=m; el.className='status-message '+t; setTimeout(function(){el.style.display='none';},4000); }
 
