@@ -131,7 +131,7 @@
   </div>
 
   <script>
-    var AMAP_WEB_KEY = '0fbf2cb3e705e9c632e3c466253637e0'; // 替换为你的Web服务密钥
+    var AMAP_WEB_KEY = '0fbf2cb3e705e9c632e3c466253637e0';
     var state = { images: [], imageSizes: [], maxImages: 5, minImages: 3, currentLocation: null, isProcessing: false };
     var allRecords = JSON.parse(localStorage.getItem('visitRecords') || '[]');
     var downloadedIds = JSON.parse(localStorage.getItem('downloadedIds') || '[]');
@@ -316,22 +316,27 @@
       document.getElementById('loadingText').textContent = '生成Excel中...';
       var wb = new ExcelJS.Workbook(), ws = wb.addWorksheet('走访记录');
       var hdrs = ['序号','记录时间','客户名称','联系方式','联系人','走访人','用户反映情况','用户使用电信情况说明','地址','图片1','图片2','图片3','图片4','图片5'];
-      var colWidths = [6,20,18,15,12,10,35,35,40,20,20,20,20,20];
+      var colWidths = [5,16,14,13,10,9,28,28,25,14,14,14,14,14];
       ws.columns = hdrs.map(function(h,i){ return { header:h, width:colWidths[i] }; });
-      ws.getRow(1).eachCell(function(c){ c.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFFFFFFF'}}; c.font={name:'微软雅黑',size:11,bold:true,color:{argb:'FF000000'}}; c.alignment={horizontal:'center',vertical:'middle',wrapText:true}; c.border={top:{style:'thin'},bottom:{style:'thin'},left:{style:'thin'},right:{style:'thin'}}; });
+      ws.getRow(1).eachCell(function(c){
+        c.fill = {type:'pattern',pattern:'solid',fgColor:{argb:'FFFFFFFF'}};
+        c.font = {name:'微软雅黑',size:10,bold:true,color:{argb:'FF000000'}};
+        c.alignment = {horizontal:'center',vertical:'middle',wrapText:true};
+        c.border = {top:{style:'thin'},bottom:{style:'thin'},left:{style:'thin'},right:{style:'thin'}};
+      });
       for (var i = 0; i < allRecords.length; i++) {
         var r = allRecords[i], row = ws.getRow(i+2);
         var rowData = [i+1, r.time, r.customerName, r.customerContact, r.contactPerson, r.visitorName, r.customerFeedback, r.telecomUsage, r.address];
         for (var j = 0; j < rowData.length; j++) {
           var cell = row.getCell(j+1);
           cell.value = rowData[j] || '';
-          cell.font = {name:'微软雅黑',size:10,color:{argb:'FF000000'}};
+          cell.font = {name:'微软雅黑',size:9,color:{argb:'FF000000'}};
           cell.alignment = {vertical:'middle',wrapText:true};
           cell.fill = {type:'pattern',pattern:'solid',fgColor:{argb:'FFFFFFFF'}};
           cell.border = {top:{style:'thin'},bottom:{style:'thin'},left:{style:'thin'},right:{style:'thin'}};
         }
         if (r.images && r.images.length > 0) {
-          row.height = Math.max(100, r.images.length * 80);
+          row.height = Math.max(80, r.images.length * 60);
           for (var j = 0; j < r.images.length; j++) {
             try {
               var b64 = r.images[j].includes('base64,') ? r.images[j].split('base64,')[1] : r.images[j];
@@ -339,10 +344,16 @@
               for (var k = 0; k < bin.length; k++) bytes[k] = bin.charCodeAt(k);
               var imgId = wb.addImage({ buffer: bytes.buffer, extension:'jpeg' });
               var sz = r.imageSizes ? r.imageSizes[j] : { width:800, height:600 };
-              ws.addImage(imgId, { tl: { col: 9+j, row: i+1 }, ext: { width: 120, height: 120 * (sz.height/sz.width) }, editAs: 'oneCell' });
+              var imgWidth = 90;
+              var imgHeight = imgWidth * (sz.height / sz.width);
+              ws.addImage(imgId, {
+                tl: { col: 9+j, row: i+1 },
+                ext: { width: imgWidth * 0.75, height: imgHeight * 0.75 },
+                editAs: 'oneCell'
+              });
             } catch(err) { row.getCell(10+j).value = '加载失败'; }
           }
-        } else { row.height = 22; }
+        } else { row.height = 18; }
       }
       ws.views = [{ state:'frozen', ySplit:1 }];
       var buf = await wb.xlsx.writeBuffer();
