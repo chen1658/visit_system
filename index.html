@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>客户走访记录系统</title>
+  <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
+  <script src="https://webapi.amap.com/maps?v=2.0&key=0fbf2cb3e705e9c632e3c466253637e0&plugin=AMap.Geolocation,AMap.Geocoder"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Microsoft YaHei', sans-serif;
+      background: #f5f7fa;
+      padding: 20px;
+    }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 16px;
+      padding: 30px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
+    h2 { 
+      color: #2c3e50; 
+      margin-bottom: 25px; 
+      font-size: 24px;
+      padding-bottom: 15px;
+      border-bottom: 2px solid #ecf0f1;
+    }
+    .form-group { margin-bottom: 20px; }
+    label { 
+      display: block; 
+      margin-bottom: 8px; 
+      color: #34495e; 
+      font-weight: 600;
+      font-size: 14px;
+    }
+    input, select, textarea {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #e0e6ed;
+      border-radius: 8px;
+      font-size: 14px;
+      transition: border-color 0.3s;
+      background: #fafbfc;
+    }
+    input:focus, select:focus, textarea:focus {
+      border-color: #3498db;
+      outline: none;
+      background: white;
+    }
+    input[readonly] {
+      background: #f0f3f5;
+      color: #2c3e50;
+    }
+    textarea {
+      resize: vertical;
+      min-height: 80px;
+      font-family: 'Microsoft YaHei', sans-serif;
+    }
+    .location-box { display: flex; gap: 10px; }
+    .location-box input { flex: 1; }
+    button {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      transition: all 0.3s;
+    }
+    .btn-primary { background: #3498db; color: white; }
+    .btn-primary:hover { background: #2980b9; }
+    .btn-secondary { background: #ecf0f1; color: #2c3e50; }
+    .btn-secondary:hover { background: #d5dbdb; }
+    .btn-location { background: #27ae60; color: white; white-space: nowrap; }
+    .btn-location:hover { background: #229954; }
+    .btn-location:disabled { background: #95a5a6; cursor: not-allowed; }
+    .btn-danger { background: #e74c3c; color: white; }
+    .btn-danger:hover { background: #c0392b; }
+    
+    .image-upload-container {
+      display: flex; flex-wrap: wrap; gap: 15px; margin-top: 10px;
+      min-height: 100px; padding: 15px;
+      border: 2px dashed #bdc3c7; border-radius: 12px;
+      background: #fafbfc; transition: all 0.3s;
+    }
+    .image-upload-container.drag-over { border-color: #3498db; background: #ebf5fb; }
+    .image-item {
+      width: 100px; height: 100px; border-radius: 8px; position: relative;
+      background-size: cover; background-position: center;
+      border: 2px solid #e0e6ed; transition: transform 0.2s;
+    }
+    .image-item:hover { transform: scale(1.05); }
+    .image-item .delete-btn {
+      position: absolute; top: -8px; right: -8px;
+      width: 24px; height: 24px; background: #e74c3c; color: white;
+      border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      cursor: pointer; font-size: 14px; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+    .upload-btn {
+      width: 100px; height: 100px; border: 2px dashed #bdc3c7; border-radius: 8px;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      cursor: pointer; transition: all 0.3s; color: #7f8c8d; background: white;
+    }
+    .upload-btn:hover { border-color: #3498db; color: #3498db; background: #ebf5fb; }
+    .upload-btn .plus-icon { font-size: 30px; font-weight: bold; line-height: 1; }
+    .upload-progress {
+      width: 100%; height: 4px; background: #ecf0f1;
+      border-radius: 2px; margin-top: 10px; overflow: hidden; display: none;
+    }
+    .progress-bar { height: 100%; background: #3498db; transition: width 0.3s; }
+    .map-links { margin-top: 8px; font-size: 13px; display: flex; gap: 10px; }
+    .map-links a { 
+      color: #3498db; text-decoration: none; padding: 4px 12px;
+      border: 1px solid #3498db; border-radius: 4px; transition: all 0.3s;
+    }
+    .map-links a:hover { background: #3498db; color: white; }
+    .status-message {
+      padding: 12px 16px; border-radius: 8px; margin-top: 20px;
+      font-size: 14px; display: none; border-left: 4px solid;
+    }
+    .success { background: #d4edda; color: #155724; display: block; border-color: #28a745; }
+    .error { background: #f8d7da; color: #721c24; display: block; border-color: #dc3545; }
+    .info { background: #d1ecf1; color: #0c5460; display: block; border-color: #17a2b8; }
+    .warning { background: #fff3cd; color: #856404; display: block; border-color: #ffc107; }
+    .btn-group { display: flex; gap: 10px; margin-top: 25px; }
+    .image-count {
+      display: inline-block; padding: 2px 10px; background: #3498db;
+      color: white; border-radius: 10px; font-size: 12px; margin-left: 8px;
+    }
+    .location-info {
+      font-size: 12px; color: #7f8c8d; margin-top: 5px;
+      max-height: 60px; overflow-y: auto; line-height: 1.5;
+    }
+    .accuracy-badge {
+      display: inline-block; padding: 1px 6px; border-radius: 4px;
+      font-size: 10px; font-weight: bold; margin-left: 5px;
+    }
+    .accuracy-high { background: #d4edda; color: #155724; }
+    .accuracy-medium { background: #fff3cd; color: #856404; }
+    .accuracy-low { background: #f8d7da; color: #721c24; }
+    
+    .records-section { margin-top: 30px; padding-top: 20px; border-top: 2px solid #ecf0f1; }
+    .records-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 15px; }
+    .records-table th {
+      background: #3498db; color: white; padding: 8px; text-align: left; font-size: 11px;
+    }
+    .records-table td {
+      padding: 8px; border-bottom: 1px solid #ecf0f1;
+      max-width: 100px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    
+    .loading-overlay {
+      display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center;
+    }
+    .loading-content { background: white; padding: 30px; border-radius: 12px; text-align: center; }
+    .spinner {
+      border: 4px solid #ecf0f1; border-top: 4px solid #3498db;
+      border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto 15px;
+    }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    
+    @media (max-width: 480px) {
+      .container { padding: 20px; }
+      .image-item, .upload-btn { width: 80px; height: 80px; }
+      .btn-group { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>客户走访记录</h2>
+    
+    <form id="visitForm">
+      <div class="form-group">
+        <label>客户名称 *</label>
+        <input type="text" id="customerName" required placeholder="请输入客户名称">
+      </div>
+      <div class="form-group">
+        <label>联系方式 *</label>
+        <input type="text" id="customerContact" required placeholder="手机号码">
+      </div>
+      <div class="form-group">
+        <label>联系人 *</label>
+        <input type="text" id="contactPerson" required placeholder="请输入联系人姓名">
+      </div>
+      <div class="form-group">
+        <label>走访人 *</label>
+        <select id="visitorName" required>
+          <option value="">请选择走访人</option>
+          <option value="庄萍萍">庄萍萍</option>
+          <option value="孙子沐">孙子沐</option>
+          <option value="丁楠">丁楠</option>
+          <option value="韩姣姣">韩姣姣</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>用户反映情况</label>
+        <textarea id="customerFeedback" placeholder="请输入用户反映的情况、需求或问题..."></textarea>
+      </div>
+      <div class="form-group">
+        <label>用户使用电信情况说明</label>
+        <textarea id="telecomUsage" placeholder="请输入用户电信业务使用情况..."></textarea>
+      </div>
+      <div class="form-group">
+        <label>实时位置 * <span id="accuracyBadge"></span></label>
+        <div class="location-box">
+          <input type="text" id="address" readonly placeholder="点击右侧按钮获取精准位置">
+          <button type="button" class="btn-location" id="locationBtn" onclick="getLocation()">获取定位</button>
+        </div>
+        <div class="location-info" id="locationDetail"></div>
+        <div class="map-links">
+          <a href="#" id="amapLink" target="_blank" style="display:none;">高德地图查看</a>
+          <a href="#" id="baiduLink" target="_blank" style="display:none;">百度地图查看</a>
+        </div>
+        <input type="hidden" id="latitude">
+        <input type="hidden" id="longitude">
+      </div>
+      <div class="form-group">
+        <label>现场照片 (3-5张) * <span class="image-count" id="imageCount">0/5</span></label>
+        <div class="image-upload-container" id="imageContainer">
+          <div class="upload-btn" id="uploadBtn" onclick="document.getElementById('fileInput').click()">
+            <span class="plus-icon">+</span><small>添加图片</small>
+          </div>
+        </div>
+        <input type="file" id="fileInput" accept="image/*" multiple style="display:none;" onchange="handleFileSelect(event)">
+        <div class="upload-progress" id="uploadProgress"><div class="progress-bar" id="progressBar" style="width:0%"></div></div>
+      </div>
+      
+      <div class="btn-group">
+        <button type="submit" class="btn-primary" style="flex:2;">提交并保存到Excel</button>
+        <button type="button" class="btn-secondary" onclick="clearImages()">清空图片</button>
+      </div>
+      <div class="btn-group">
+        <button type="button" class="btn-secondary" onclick="downloadExcel()" style="flex:1;">下载Excel(含图片)</button>
+        <button type="button" class="btn-secondary" onclick="previewData()" style="flex:1;">预览数据</button>
+        <button type="button" class="btn-danger" onclick="clearAllRecords()" style="flex:1;">清空记录</button>
+      </div>
+    </form>
+    
+    <div class="status-message" id="statusMessage"></div>
+    
+    <div class="records-section">
+      <h3 style="color:#2c3e50; margin-bottom:10px;">历史记录 <span id="recordCount">(0条)</span></h3>
+      <div style="overflow-x:auto;">
+        <table class="records-table" id="recordsTable">
+          <thead><tr><th>序号</th><th>时间</th><th>客户</th><th>联系方式</th><th>联系人</th><th>走访人</th><th>反映情况</th><th>电信使用</th><th>图片</th><th>操作</th></tr></thead>
+          <tbody id="recordsBody"><tr><td colspan="10" style="text-align:center;padding:20px;">暂无记录</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="loading-content"><div class="spinner"></div><p>正在生成Excel文件...</p></div>
+  </div>
+
+  <script>
+    const state = {
+      images: [], imageSizes: [],
+      maxImages: 5, minImages: 3,
+      currentLocation: null, isProcessing: false
+    };
+    let allRecords = JSON.parse(localStorage.getItem('visitRecords') || '[]');
+    let geolocation, geocoder;
+    
+    // 高精度定位初始化
+    function initAMap() {
+      if (typeof AMap !== 'undefined') {
+        AMap.plugin(['AMap.Geolocation', 'AMap.Geocoder'], function() {
+          geolocation = new AMap.Geolocation({
+            enableHighAccuracy: true,
+            timeout: 15000,
+            maximumAge: 0,
+            convert: true,
+            showButton: false,
+            showMarker: false,
+            showCircle: true,
+            panToLocation: false,
+            zoomToAccuracy: true,
+            useNative: true,
+            extensions: 'all'
+          });
+          geocoder = new AMap.Geocoder({
+            radius: 100,
+            extensions: 'all'
+          });
+          console.log('高精度定位已就绪');
+        });
+      }
+    }
+
+    // 精准定位函数
+    function getLocation() {
+      if (!geolocation) {
+        showMessage('定位服务未就绪，请刷新页面', 'error');
+        return;
+      }
+      
+      const btn = document.getElementById('locationBtn');
+      btn.disabled = true;
+      btn.textContent = '定位中...';
+      showMessage('正在获取精准位置...', 'info');
+      
+      geolocation.getCurrentPosition(function(status, result) {
+        btn.disabled = false;
+        btn.textContent = '获取定位';
+        
+        if (status === 'complete' && result.position) {
+          const { lat, lng } = result.position;
+          state.currentLocation = { lat, lng };
+          
+          document.getElementById('latitude').value = lat.toFixed(8);
+          document.getElementById('longitude').value = lng.toFixed(8);
+          
+          // 显示精度信息
+          const accuracy = result.accuracy || 0;
+          updateAccuracyBadge(accuracy);
+          
+          geocoder.getAddress([lng, lat], function(status, result) {
+            if (status === 'complete' && result.regeocode) {
+              const regeocode = result.regeocode;
+              const addressComponent = regeocode.addressComponent;
+              
+              const province = addressComponent.province || '';
+              const city = addressComponent.city || '';
+              const district = addressComponent.district || '';
+              const township = addressComponent.township || '';
+              
+              const roads = regeocode.roads || [];
+              const roadName = roads.length > 0 ? roads[0].name : '';
+              const roadDistance = roads.length > 0 ? roads[0].distance : '';
+              
+              const streetNumber = addressComponent.streetNumber || {};
+              const street = streetNumber.street || '';
+              const number = streetNumber.number || '';
+              const direction = streetNumber.direction || '';
+              
+              const pois = regeocode.pois || [];
+              const nearbyPois = pois.slice(0, 5).map(p => ({
+                name: p.name, distance: p.distance, direction: p.direction || ''
+              }));
+              
+              const businessAreas = addressComponent.businessAreas || [];
+              
+              let fullAddress = '';
+              let locationDetail = '';
+              let detailParts = [];
+              
+              if (roadName) {
+                fullAddress = province + city + district;
+                if (township && township !== district) fullAddress += township;
+                
+                const dirText = direction ? direction : '';
+                fullAddress += ' ' + dirText + roadName;
+                
+                if (roadDistance) {
+                  fullAddress += ` (约${roadDistance}米处)`;
+                }
+                
+                if (street && number) {
+                  fullAddress += ` 近${street}${number}号`;
+                }
+                
+                if (nearbyPois.length > 0) {
+                  const nearest = nearbyPois[0];
+                  const poiDir = nearest.direction ? ` ${nearest.direction}方向` : '';
+                  fullAddress += ` ${poiDir}${nearest.name}`;
+                  if (nearest.distance) {
+                    fullAddress += `(约${nearest.distance}米)`;
+                  }
+                }
+                
+                detailParts.push(`道路: ${roadName}`);
+                if (roadDistance) detailParts.push(`距离: ${roadDistance}米`);
+                if (direction) detailParts.push(`方位: ${direction}`);
+                if (street) detailParts.push(`街道: ${street}${number||''}`);
+                
+              } else if (street && number) {
+                fullAddress = province + city + district + township;
+                fullAddress += ' ' + direction + street + number + '号';
+                detailParts.push(`街道: ${street}${number}号`);
+                if (direction) detailParts.push(`方位: ${direction}`);
+              } else {
+                fullAddress = regeocode.formattedAddress;
+              }
+              
+              if (nearbyPois.length > 0) {
+                const poiList = nearbyPois.slice(0, 3).map(p => 
+                  `${p.name}(${p.distance}米)`
+                ).join('、');
+                detailParts.push(`周边: ${poiList}`);
+              }
+              
+              if (businessAreas.length > 0) {
+                detailParts.push(`商圈: ${businessAreas.join('、')}`);
+              }
+              
+              if (accuracy) {
+                let accuracyText = '';
+                if (accuracy <= 15) accuracyText = '高精度';
+                else if (accuracy <= 50) accuracyText = '中等精度';
+                else accuracyText = '低精度';
+                detailParts.push(`定位精度: ${accuracyText}(±${accuracy}米)`);
+              }
+              
+              locationDetail = detailParts.join(' | ');
+              
+              document.getElementById('address').value = fullAddress;
+              document.getElementById('locationDetail').textContent = locationDetail;
+              
+              state.currentLocation.address = fullAddress;
+              state.currentLocation.addressDetail = locationDetail;
+              state.currentLocation.formattedAddress = regeocode.formattedAddress;
+              state.currentLocation.accuracy = accuracy;
+              state.currentLocation.roadName = roadName;
+              state.currentLocation.nearbyPois = nearbyPois;
+              
+              console.log('精准定位成功:', fullAddress);
+              console.log('详情:', locationDetail);
+            } else {
+              const coordAddress = `坐标: ${lat.toFixed(8)}, ${lng.toFixed(8)}`;
+              document.getElementById('address').value = coordAddress;
+              document.getElementById('locationDetail').textContent = `精度: ±${accuracy}米`;
+              state.currentLocation.address = coordAddress;
+            }
+            updateMapLinks(lat, lng);
+            showMessage('精准定位成功', 'success');
+          });
+        } else {
+          const errMsg = result.message || '定位失败';
+          showMessage('定位失败: ' + errMsg, 'error');
+          document.getElementById('accuracyBadge').innerHTML = '';
+          if (errMsg.includes('超时') || errMsg.includes('timeout')) {
+            showMessage('定位超时，请移到开阔地带重试', 'warning');
+          }
+        }
+      });
+    }
+
+    // 更新精度徽章
+    function updateAccuracyBadge(accuracy) {
+      const badge = document.getElementById('accuracyBadge');
+      let html = '';
+      let className = '';
+      if (accuracy <= 15) {
+        html = `高精度 ±${accuracy}米`;
+        className = 'accuracy-high';
+      } else if (accuracy <= 50) {
+        html = `中等精度 ±${accuracy}米`;
+        className = 'accuracy-medium';
+      } else if (accuracy > 0) {
+        html = `低精度 ±${accuracy}米`;
+        className = 'accuracy-low';
+      }
+      badge.innerHTML = html ? `<span class="accuracy-badge ${className}">${html}</span>` : '';
+    }
+
+    function updateMapLinks(lat, lng) {
+      const addr = encodeURIComponent(state.currentLocation?.address||'');
+      document.getElementById('amapLink').href = `https://uri.amap.com/marker?position=${lng},${lat}&name=${addr}`;
+      document.getElementById('baiduLink').href = `https://api.map.baidu.com/marker?location=${lat},${lng}&title=${addr}`;
+      document.getElementById('amapLink').style.display = 'inline';
+      document.getElementById('baiduLink').style.display = 'inline';
+    }
+
+    function compressImage(file, maxWidth = 1200, quality = 0.8) {
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          const img = new Image();
+          img.onload = function() {
+            const origW = img.width, origH = img.height;
+            let w = origW, h = origH;
+            if (w > maxWidth) { h = Math.round(h * maxWidth / w); w = maxWidth; }
+            const canvas = document.createElement('canvas');
+            canvas.width = w; canvas.height = h;
+            canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+            resolve({
+              dataUrl: canvas.toDataURL('image/jpeg', quality),
+              origWidth: origW, origHeight: origH,
+              width: w, height: h
+            });
+          };
+          img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    async function handleFileSelect(event) {
+      if (state.isProcessing) return;
+      const files = Array.from(event.target.files);
+      const rem = state.maxImages - state.images.length;
+      if (rem <= 0) { showMessage('最多5张', 'error'); return; }
+      const toProc = files.slice(0, rem);
+      state.isProcessing = true;
+      document.getElementById('uploadProgress').style.display = 'block';
+      for (let i = 0; i < toProc.length; i++) {
+        const result = await compressImage(toProc[i]);
+        state.images.push(result.dataUrl);
+        state.imageSizes.push({ width: result.origWidth, height: result.origHeight });
+        renderPreview(result.dataUrl, state.images.length-1);
+        updateImageCount();
+        document.getElementById('progressBar').style.width = ((i+1)/toProc.length*100)+'%';
+      }
+      state.isProcessing = false;
+      document.getElementById('uploadProgress').style.display = 'none';
+      event.target.value = '';
+    }
+
+    function renderPreview(dataUrl, idx) {
+      const c = document.getElementById('imageContainer'), b = document.getElementById('uploadBtn');
+      const d = document.createElement('div'); d.className = 'image-item';
+      d.style.backgroundImage = `url(${dataUrl})`;
+      const del = document.createElement('span'); del.className = 'delete-btn'; del.textContent = 'x';
+      del.onclick = (e) => { e.stopPropagation(); removeImage(idx); };
+      d.appendChild(del); c.insertBefore(d, b);
+      if (state.images.length >= state.maxImages) b.style.display = 'none';
+    }
+
+    function removeImage(i) { state.images.splice(i,1); state.imageSizes.splice(i,1); refreshImages(); updateImageCount(); }
+    function clearImages() { if (!state.images.length) return; if (confirm('清空图片？')) { state.images=[]; state.imageSizes=[]; refreshImages(); updateImageCount(); } }
+    function refreshImages() {
+      const c = document.getElementById('imageContainer');
+      c.querySelectorAll('.image-item').forEach(e=>e.remove());
+      state.images.forEach((img,i)=>renderPreview(img,i));
+      document.getElementById('uploadBtn').style.display = state.images.length < state.maxImages ? 'flex':'none';
+    }
+    function updateImageCount() {
+      const el = document.getElementById('imageCount');
+      el.textContent = `${state.images.length}/${state.maxImages}`;
+      el.style.background = state.images.length >= state.minImages ? '#27ae60' : state.images.length > 0 ? '#f39c12' : '#3498db';
+    }
+
+    async function generateExcel() {
+      const workbook = new ExcelJS.Workbook();
+      const worksheet = workbook.addWorksheet('走访记录');
+      
+      const headers = [
+        '序号','记录时间','客户名称','联系方式','联系人',
+        '走访人','用户反映情况','用户使用电信情况说明',
+        '显示地址','位置详情','完整地址','经度','纬度','地图链接',
+        '图片1','图片2','图片3','图片4','图片5'
+      ];
+      
+      const colWidths = [6,20,18,15,12,10,35,35,45,40,50,14,14,45,22,22,22,22,22];
+      worksheet.columns = headers.map((h,i) => ({ header:h, key:`c${i}`, width:colWidths[i] }));
+      
+      const headerRow = worksheet.getRow(1);
+      headerRow.height = 25;
+      headerRow.eachCell(cell => {
+        cell.fill = { type:'pattern', pattern:'solid', fgColor:{argb:'FFFFFFFF'} };
+        cell.font = { name:'微软雅黑', size:11, bold:true, color:{argb:'FF000000'} };
+        cell.alignment = { horizontal:'center', vertical:'middle', wrapText:true };
+        cell.border = {
+          top:{style:'thin',color:{argb:'FF000000'}},
+          bottom:{style:'thin',color:{argb:'FF000000'}},
+          left:{style:'thin',color:{argb:'FF000000'}},
+          right:{style:'thin',color:{argb:'FF000000'}}
+        };
+      });
+      
+      for (let i = 0; i < allRecords.length; i++) {
+        const rec = allRecords[i];
+        const rowIdx = i + 2;
+        const row = worksheet.getRow(rowIdx);
+        
+        const rowData = [
+          i+1, rec.time, rec.customerName, rec.customerContact,
+          rec.contactPerson, rec.visitorName, rec.customerFeedback,
+          rec.telecomUsage, rec.address, rec.addressDetail, rec.formattedAddress,
+          rec.latitude, rec.longitude, rec.mapLink
+        ];
+        
+        rowData.forEach((val, ci) => {
+          const cell = row.getCell(ci+1);
+          cell.value = val || '';
+          cell.font = { name:'微软雅黑', size:10, color:{argb:'FF000000'} };
+          cell.alignment = { vertical:'middle', wrapText:true };
+          cell.fill = { type:'pattern', pattern:'solid', fgColor:{argb:'FFFFFFFF'} };
+          cell.border = {
+            top:{style:'thin',color:{argb:'FF000000'}},
+            bottom:{style:'thin',color:{argb:'FF000000'}},
+            left:{style:'thin',color:{argb:'FF000000'}},
+            right:{style:'thin',color:{argb:'FF000000'}}
+          };
+          if (ci === 13 && val) {
+            cell.font = { name:'微软雅黑', size:10, color:{argb:'FF0000FF'}, underline:true };
+          }
+        });
+        
+        if (rec.images && rec.images.length > 0) {
+          const imgCount = rec.images.length;
+          row.height = Math.max(120, imgCount * 90);
+          
+          for (let j = 0; j < rec.images.length; j++) {
+            try {
+              const imgData = rec.images[j];
+              const base64 = imgData.includes('base64,') ? imgData.split('base64,')[1] : imgData;
+              const binaryStr = atob(base64);
+              const bytes = new Uint8Array(binaryStr.length);
+              for (let k = 0; k < binaryStr.length; k++) bytes[k] = binaryStr.charCodeAt(k);
+              
+              const imageId = workbook.addImage({ buffer: bytes.buffer, extension:'jpeg' });
+              
+              const sizes = rec.imageSizes ? rec.imageSizes[j] : { width:800, height:600 };
+              const origW = sizes.width || 800, origH = sizes.height || 600;
+              
+              const targetCellW = 150;
+              const targetCellH = row.height * 0.75;
+              
+              let imgW = targetCellW;
+              let imgH = targetCellW * (origH / origW);
+              if (imgH > targetCellH) {
+                imgH = targetCellH;
+                imgW = targetCellH * (origW / origH);
+              }
+              
+              const colIdx = 14 + j;
+              
+              worksheet.addImage(imageId, {
+                tl: { col: colIdx, row: rowIdx - 1 },
+                ext: { width: imgW * 0.75, height: imgH * 0.75 },
+                editAs: 'oneCell'
+              });
+              
+            } catch(err) {
+              console.error('图片嵌入失败:', err);
+              row.getCell(15+j).value = '加载失败';
+            }
+          }
+        } else {
+          row.height = 25;
+        }
+      }
+      
+      worksheet.views = [{ state:'frozen', ySplit:1 }];
+      worksheet.pageSetup = { orientation:'landscape', fitToPage:true, fitToWidth:1 };
+      
+      const buffer = await workbook.xlsx.writeBuffer();
+      const blob = new Blob([buffer], { type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `走访记录_${new Date().toISOString().slice(0,10)}.xlsx`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    document.getElementById('visitForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const cn = document.getElementById('customerName').value.trim();
+      const cc = document.getElementById('customerContact').value.trim();
+      const cp = document.getElementById('contactPerson').value.trim();
+      const vn = document.getElementById('visitorName').value;
+      const cf = document.getElementById('customerFeedback').value.trim();
+      const tu = document.getElementById('telecomUsage').value.trim();
+      
+      if (!cn) { showMessage('请输入客户名称','error'); return; }
+      if (!cc) { showMessage('请输入联系方式','error'); return; }
+      if (!cp) { showMessage('请输入联系人','error'); return; }
+      if (!vn) { showMessage('请选择走访人','error'); return; }
+      if (state.images.length < state.minImages) { showMessage(`至少${state.minImages}张图片`,'error'); return; }
+      if (!state.currentLocation) { showMessage('请获取位置','error'); return; }
+      
+      const record = {
+        id: Date.now(),
+        time: new Date().toLocaleString('zh-CN'),
+        customerName: cn, customerContact: cc, contactPerson: cp,
+        visitorName: vn, customerFeedback: cf, telecomUsage: tu,
+        address: state.currentLocation.address||'',
+        addressDetail: state.currentLocation.addressDetail||'',
+        formattedAddress: state.currentLocation.formattedAddress||'',
+        latitude: state.currentLocation.lat, longitude: state.currentLocation.lng,
+        mapLink: `https://uri.amap.com/marker?position=${state.currentLocation.lng},${state.currentLocation.lat}&name=${encodeURIComponent(state.currentLocation.address||'')}`,
+        images: [...state.images], imageSizes: [...state.imageSizes], imageCount: state.images.length
+      };
+      
+      allRecords.push(record);
+      localStorage.setItem('visitRecords', JSON.stringify(allRecords));
+      document.getElementById('loadingOverlay').style.display = 'flex';
+      await generateExcel();
+      document.getElementById('loadingOverlay').style.display = 'none';
+      renderTable(); resetForm();
+      showMessage('已保存，Excel已下载','success');
+    });
+
+    async function downloadExcel() {
+      if (!allRecords.length) { showMessage('暂无记录','error'); return; }
+      document.getElementById('loadingOverlay').style.display = 'flex';
+      await generateExcel();
+      document.getElementById('loadingOverlay').style.display = 'none';
+    }
+
+    function renderTable() {
+      document.getElementById('recordCount').textContent = `(${allRecords.length}条)`;
+      const tb = document.getElementById('recordsBody');
+      if (!allRecords.length) { tb.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:20px;">暂无记录</td></tr>'; return; }
+      tb.innerHTML = allRecords.map((r,i) => `
+        <tr>
+          <td>${i+1}</td><td>${r.time}</td><td title="${r.customerName}">${r.customerName}</td>
+          <td>${r.customerContact}</td><td>${r.contactPerson||''}</td><td>${r.visitorName}</td>
+          <td title="${r.customerFeedback||''}">${(r.customerFeedback||'').substring(0,8)}...</td>
+          <td title="${r.telecomUsage||''}">${(r.telecomUsage||'').substring(0,8)}...</td>
+          <td>${r.imageCount||0}张</td>
+          <td><button onclick="deleteRecord(${r.id})" style="background:#e74c3c;color:white;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;font-size:11px;">删除</button></td>
+        </tr>`).join('');
+    }
+
+    function deleteRecord(id) {
+      if (!confirm('确定删除？')) return;
+      allRecords = allRecords.filter(r=>r.id!==id);
+      localStorage.setItem('visitRecords', JSON.stringify(allRecords));
+      renderTable(); showMessage('已删除','info');
+    }
+    function clearAllRecords() {
+      if (!allRecords.length) return;
+      if (confirm(`清空全部${allRecords.length}条？`)) { allRecords=[]; localStorage.removeItem('visitRecords'); renderTable(); showMessage('已清空','info'); }
+    }
+    function resetForm() {
+      ['customerName','customerContact','contactPerson','visitorName','customerFeedback','telecomUsage','address'].forEach(id=>document.getElementById(id).value='');
+      document.getElementById('locationDetail').textContent='';
+      document.getElementById('latitude').value=''; document.getElementById('longitude').value='';
+      document.getElementById('amapLink').style.display='none'; document.getElementById('baiduLink').style.display='none';
+      document.getElementById('accuracyBadge').innerHTML='';
+      state.images=[]; state.imageSizes=[]; state.currentLocation=null;
+      refreshImages(); updateImageCount();
+    }
+    function previewData() {
+      showMessage(JSON.stringify({
+        客户:document.getElementById('customerName').value||'未填',
+        联系方式:document.getElementById('customerContact').value||'未填',
+        联系人:document.getElementById('contactPerson').value||'未填',
+        走访人:document.getElementById('visitorName').value||'未选',
+        反映情况:document.getElementById('customerFeedback').value||'未填',
+        电信使用:document.getElementById('telecomUsage').value||'未填',
+        地址:document.getElementById('address').value||'未获取',
+        图片:state.images.length+'张'
+      },null,2),'info');
+    }
+    function showMessage(m,t) {
+      const el=document.getElementById('statusMessage'); el.textContent=m; el.className='status-message '+t;
+      if(t==='success'||t==='info') setTimeout(()=>{if(el.textContent===m)el.style.display='none';},5000);
+    }
+
+    const uc=document.getElementById('imageContainer');
+    ['dragenter','dragover','dragleave','drop'].forEach(ev=>uc.addEventListener(ev,e=>{e.preventDefault();e.stopPropagation();}));
+    ['dragenter','dragover'].forEach(ev=>uc.addEventListener(ev,()=>uc.classList.add('drag-over')));
+    ['dragleave','drop'].forEach(ev=>uc.addEventListener(ev,()=>uc.classList.remove('drag-over')));
+    uc.addEventListener('drop',e=>{if(e.dataTransfer.files.length)handleFileSelect({target:{files:e.dataTransfer.files,value:''}});});
+
+    window.onload=function(){initAMap();updateImageCount();renderTable();setTimeout(getLocation,2000);};
+  </script>
+</body>
+</html>
