@@ -77,133 +77,133 @@
 <body>
   <div class="container">
     <h2>客户走访记录</h2>
-    <form id="visitForm">
-      <div class="form-group"><label>客户名称 *</label><input type="text" id="customerName" required placeholder="请输入客户名称" autocomplete="off"></div>
-      <div class="form-group"><label>联系方式 *</label><input type="tel" id="customerContact" required placeholder="手机号码" autocomplete="off"></div>
-      <div class="form-group"><label>联系人 *</label><input type="text" id="contactPerson" required placeholder="请输入联系人" autocomplete="off"></div>
-      <div class="form-group"><label>走访人 *</label><select id="visitorName" required><option value="">请选择</option><option value="庄萍萍">庄萍萍</option><option value="孙子沐">孙子沐</option><option value="丁楠">丁楠</option><option value="韩姣姣">韩姣姣</option></select></div>
-      <div class="form-group"><label>用户反映情况</label><textarea id="customerFeedback" placeholder="用户反映的情况..."></textarea></div>
-      <div class="form-group"><label>用户使用电信情况说明</label><textarea id="telecomUsage" placeholder="电信业务使用情况..."></textarea></div>
+    <form id="zouFangBiaoDan">
+      <div class="form-group"><label>客户名称 *</label><input type="text" id="keHuMingCheng" required placeholder="请输入客户名称" autocomplete="off"></div>
+      <div class="form-group"><label>联系方式 *</label><input type="tel" id="keHuLianXiFangShi" required placeholder="手机号码" autocomplete="off"></div>
+      <div class="form-group"><label>联系人 *</label><input type="text" id="lianXiRen" required placeholder="请输入联系人" autocomplete="off"></div>
+      <div class="form-group"><label>走访人 *</label><select id="zouFangRen" required><option value="">请选择</option><option value="庄萍萍">庄萍萍</option><option value="孙子沐">孙子沐</option><option value="丁楠">丁楠</option><option value="韩姣姣">韩姣姣</option></select></div>
+      <div class="form-group"><label>用户反映情况</label><textarea id="yongHuFanYing" placeholder="用户反映的情况..."></textarea></div>
+      <div class="form-group"><label>用户使用电信情况说明</label><textarea id="dianXinShiYong" placeholder="电信业务使用情况..."></textarea></div>
       <div class="form-group">
         <label>实时位置 *</label>
-        <div class="location-box" id="locationBox">
-          <input type="text" id="address" readonly placeholder="点击获取位置后选择附近地点">
-          <button type="button" class="btn-location" id="locationBtn" onclick="getLocation()">定位</button>
-          <div class="poi-selector" id="poiSelector"></div>
+        <div class="location-box" id="dingWeiHeZi">
+          <input type="text" id="diZhi" readonly placeholder="点击获取位置后选择附近地点">
+          <button type="button" class="btn-location" id="dingWeiAnNiu" onclick="huoQuDingWei()">定位</button>
+          <div class="poi-selector" id="diZhiXuanZeQi"></div>
         </div>
         <div class="map-links">
-          <a href="#" id="amapLink" target="_blank" style="display:none;">高德地图</a>
-          <a href="#" id="baiduLink" target="_blank" style="display:none;">百度地图</a>
+          <a href="#" id="gaoDeLianJie" target="_blank" style="display:none;">高德地图</a>
+          <a href="#" id="baiDuLianJie" target="_blank" style="display:none;">百度地图</a>
         </div>
-        <input type="hidden" id="latitude"><input type="hidden" id="longitude">
+        <input type="hidden" id="weiDu"><input type="hidden" id="jingDu">
       </div>
       <div class="form-group">
-        <label>照片 (3-5张) <span class="image-count" id="imageCount">0/5</span></label>
-        <div class="image-upload-container" id="imageContainer">
-          <div class="upload-btn" id="uploadBtn" onclick="document.getElementById('fileInput').click()"><span class="plus-icon">+</span><small>添加</small></div>
+        <label>照片 (3-5张) <span class="image-count" id="tuPianJiShu">0/5</span></label>
+        <div class="image-upload-container" id="tuPianRongQi">
+          <div class="upload-btn" id="shangChuanAnNiu" onclick="document.getElementById('wenJianShuRu').click()"><span class="plus-icon">+</span><small>添加</small></div>
         </div>
-        <input type="file" id="fileInput" accept="image/*" multiple style="display:none;" onchange="handleFileSelect(event)" capture="environment">
-        <div class="upload-progress" id="uploadProgress"><div class="progress-bar" id="progressBar" style="width:0%"></div></div>
+        <input type="file" id="wenJianShuRu" accept="image/*" multiple style="display:none;" onchange="chuLiWenJianXuanZe(event)" capture="environment">
+        <div class="upload-progress" id="shangChuanJinDu"><div class="progress-bar" id="jinDuTiao" style="width:0%"></div></div>
       </div>
       <div class="btn-group">
         <button type="submit" class="btn-primary" style="flex:2;">保存记录</button>
-        <button type="button" class="btn-download" onclick="downloadExcel()" style="flex:1;">下载Excel</button>
-        <button type="button" class="btn-secondary" onclick="clearImages()">清空图片</button>
+        <button type="button" class="btn-download" onclick="xiaZaiExcel()" style="flex:1;">下载Excel</button>
+        <button type="button" class="btn-secondary" onclick="qingChuTuPian()">清空图片</button>
       </div>
       <div class="btn-group">
-        <button type="button" class="btn-secondary" onclick="previewData()" style="flex:1;">预览</button>
-        <button type="button" class="btn-danger" onclick="clearAllRecords()" style="flex:1;">清空记录</button>
+        <button type="button" class="btn-secondary" onclick="yuLanShuJu()" style="flex:1;">预览</button>
+        <button type="button" class="btn-danger" onclick="qingChuQuanBuJiLu()" style="flex:1;">清空记录</button>
       </div>
     </form>
-    <div class="status-message" id="statusMessage"></div>
+    <div class="status-message" id="zhuangTaiXiaoXi"></div>
     <div class="records-section">
-      <h3 style="color:#2c3e50;font-size:16px;">历史记录 <span id="recordCount" style="font-size:12px;">(0条)</span><span class="unsaved-badge" id="unsavedBadge" style="display:none;">未下载</span></h3>
+      <h3 style="color:#2c3e50;font-size:16px;">历史记录 <span id="jiLuJiShu" style="font-size:12px;">(0条)</span><span class="unsaved-badge" id="weiXiaZaiBiaoJi" style="display:none;">未下载</span></h3>
       <div style="overflow-x:auto;">
-        <table class="records-table" id="recordsTable">
+        <table class="records-table" id="jiLuBiaoGe">
           <thead><tr><th>序号</th><th>时间</th><th>客户</th><th>联系</th><th>联系人</th><th>走访人</th><th>情况</th><th>电信</th><th>图</th><th>操作</th></tr></thead>
-          <tbody id="recordsBody"><tr><td colspan="10" style="text-align:center;padding:12px;">暂无记录</td></tr></tbody>
+          <tbody id="jiLuBiaoTi"><tr><td colspan="10" style="text-align:center;padding:12px;">暂无记录</td></tr></tbody>
         </table>
       </div>
     </div>
   </div>
-  <div class="loading-overlay" id="loadingOverlay">
-    <div class="loading-content"><div class="spinner"></div><p id="loadingText">生成Excel中...</p></div>
+  <div class="loading-overlay" id="jiaZaiMengCeng">
+    <div class="loading-content"><div class="spinner"></div><p id="jiaZaiWenZi">生成Excel中...</p></div>
   </div>
 
   <script>
-    var AMAP_WEB_KEY = '0fbf2cb3e705e9c632e3c466253637e0';
-    var state = { images: [], imageSizes: [], maxImages: 5, minImages: 3, currentLocation: null, isProcessing: false };
-    var allRecords = JSON.parse(localStorage.getItem('visitRecords') || '[]');
-    var downloadedIds = JSON.parse(localStorage.getItem('downloadedIds') || '[]');
+    var GAO_DE_WEB_KEY = '0fbf2cb3e705e9c632e3c466253637e0';
+    var zhuangTai = { tuPianLieBiao: [], tuPianChiCunLieBiao: [], zuiDaTuPian: 5, zuiXiaoTuPian: 3, dangQianDingWei: null, zhengZaiChuLi: false };
+    var quanBuJiLu = JSON.parse(localStorage.getItem('visitRecords') || '[]');
+    var yiXiaZaiIds = JSON.parse(localStorage.getItem('downloadedIds') || '[]');
 
-    function getLocation() {
-      if (!navigator.geolocation) { showMessage('浏览器不支持定位', 'error'); return; }
-      var btn = document.getElementById('locationBtn');
+    function huoQuDingWei() {
+      if (!navigator.geolocation) { xianShiXiaoXi('浏览器不支持定位', 'error'); return; }
+      var btn = document.getElementById('dingWeiAnNiu');
       btn.disabled = true; btn.textContent = '定位中...';
-      showMessage('获取位置中...', 'info');
+      xianShiXiaoXi('获取位置中...', 'info');
       navigator.geolocation.getCurrentPosition(
         function(position) {
-          var lat = position.coords.latitude;
-          var lng = position.coords.longitude;
-          state.currentLocation = { lat: lat, lng: lng };
-          document.getElementById('latitude').value = lat.toFixed(8);
-          document.getElementById('longitude').value = lng.toFixed(8);
+          var weiDu = position.coords.latitude;
+          var jingDu = position.coords.longitude;
+          zhuangTai.dangQianDingWei = { weiDu: weiDu, jingDu: jingDu };
+          document.getElementById('weiDu').value = weiDu.toFixed(8);
+          document.getElementById('jingDu').value = jingDu.toFixed(8);
 
-          var url = 'https://restapi.amap.com/v3/geocode/regeo?output=JSON&location=' + lng + ',' + lat + '&key=' + AMAP_WEB_KEY + '&radius=1000&extensions=all';
-          jsonpRequest(url, 'amapCallback', function(data) {
+          var url = 'https://restapi.amap.com/v3/geocode/regeo?output=JSON&location=' + jingDu + ',' + weiDu + '&key=' + GAO_DE_WEB_KEY + '&radius=1000&extensions=all';
+          jsonpQingQiu(url, 'gaoDeHuiDiao', function(shuJu) {
             btn.disabled = false; btn.textContent = '重新定位';
-            if (data.status === '1' && data.regeocode) {
-              showPoiSelector(data.regeocode, lat, lng);
+            if (shuJu.status === '1' && shuJu.regeocode) {
+              xianShiDiZhiXuanZe(shuJu.regeocode, weiDu, jingDu);
             } else {
-              showMessage('获取地址失败，已记录坐标', 'info');
-              useCoordinateOnly(lat, lng);
+              xianShiXiaoXi('获取地址失败，已记录坐标', 'info');
+              jinYongZuoBiao(weiDu, jingDu);
             }
           }, function() {
             btn.disabled = false; btn.textContent = '获取定位';
-            showMessage('请求失败，请检查密钥或网络', 'error');
-            useCoordinateOnly(lat, lng);
+            xianShiXiaoXi('请求失败，请检查密钥或网络', 'error');
+            jinYongZuoBiao(weiDu, jingDu);
           });
         },
-        function(error) {
+        function(cuoWu) {
           btn.disabled = false; btn.textContent = '获取定位';
-          var msg = '';
-          switch(error.code) {
-            case error.PERMISSION_DENIED: msg = '请允许定位权限'; break;
-            case error.TIMEOUT: msg = '定位超时，请到室外'; break;
-            default: msg = '定位失败，请在室外重试';
+          var xiaoXi = '';
+          switch(cuoWu.code) {
+            case cuoWu.PERMISSION_DENIED: xiaoXi = '请允许定位权限'; break;
+            case cuoWu.TIMEOUT: xiaoXi = '定位超时，请到室外'; break;
+            default: xiaoXi = '定位失败，请在室外重试';
           }
-          showMessage(msg, 'error');
+          xianShiXiaoXi(xiaoXi, 'error');
         },
         { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
       );
     }
 
-    function jsonpRequest(url, callbackName, success, error) {
+    function jsonpQingQiu(url, huiDiaoMingCheng, chengGong, shiBai) {
       var script = document.createElement('script');
-      var timeoutTimer = setTimeout(function() { cleanup(); if (error) error(); }, 10000);
-      window[callbackName] = function(data) { cleanup(); if (success) success(data); };
-      script.src = url + (url.indexOf('?') >= 0 ? '&' : '?') + 'callback=' + callbackName;
-      script.onerror = function() { cleanup(); if (error) error(); };
+      var timeoutTimer = setTimeout(function() { qingLi(); if (shiBai) shiBai(); }, 10000);
+      window[huiDiaoMingCheng] = function(shuJu) { qingLi(); if (chengGong) chengGong(shuJu); };
+      script.src = url + (url.indexOf('?') >= 0 ? '&' : '?') + 'callback=' + huiDiaoMingCheng;
+      script.onerror = function() { qingLi(); if (shiBai) shiBai(); };
       document.head.appendChild(script);
-      function cleanup() { clearTimeout(timeoutTimer); if (script.parentNode) script.parentNode.removeChild(script); delete window[callbackName]; }
+      function qingLi() { clearTimeout(timeoutTimer); if (script.parentNode) script.parentNode.removeChild(script); delete window[huiDiaoMingCheng]; }
     }
 
-    function showPoiSelector(regeo, lat, lng) {
+    function xianShiDiZhiXuanZe(regeo, weiDu, jingDu) {
       var pois = regeo.pois || [];
-      var formattedAddress = regeo.formattedAddress;
-      var selector = document.getElementById('poiSelector');
+      var geShiHuaDiZhi = regeo.formattedAddress;
+      var selector = document.getElementById('diZhiXuanZeQi');
       selector.innerHTML = '';
 
       if (pois.length === 0) {
-        setAddress(formattedAddress, lat, lng);
+        sheZhiDiZhi(geShiHuaDiZhi, weiDu, jingDu);
         return;
       }
 
       var useCoordDiv = document.createElement('div');
       useCoordDiv.className = 'poi-item';
-      useCoordDiv.innerHTML = '<strong>使用当前坐标</strong><div class="poi-addr">' + formattedAddress + '</div>';
+      useCoordDiv.innerHTML = '<strong>使用当前坐标</strong><div class="poi-addr">' + geShiHuaDiZhi + '</div>';
       useCoordDiv.onclick = function() {
-        setAddress(formattedAddress, lat, lng);
+        sheZhiDiZhi(geShiHuaDiZhi, weiDu, jingDu);
         selector.style.display = 'none';
       };
       selector.appendChild(useCoordDiv);
@@ -214,7 +214,7 @@
           div.className = 'poi-item';
           div.innerHTML = '<strong>' + poi.name + '</strong><div class="poi-addr">' + (poi.address || '') + ' | ' + poi.distance + '米</div>';
           div.onclick = function() {
-            setAddress(poi.name, lat, lng);
+            sheZhiDiZhi(poi.name, weiDu, jingDu);
             selector.style.display = 'none';
           };
           selector.appendChild(div);
@@ -224,35 +224,35 @@
       selector.style.display = 'block';
 
       document.addEventListener('click', function closeSelector(e) {
-        if (!document.getElementById('locationBox').contains(e.target)) {
+        if (!document.getElementById('dingWeiHeZi').contains(e.target)) {
           selector.style.display = 'none';
           document.removeEventListener('click', closeSelector);
         }
       }, { once: true });
     }
 
-    function setAddress(addressText, lat, lng) {
-      document.getElementById('address').value = addressText;
-      state.currentLocation.address = addressText;
-      state.currentLocation.formattedAddress = addressText;
-      updateMapLinks(lat, lng);
-      showMessage('已选择: ' + addressText, 'success');
+    function sheZhiDiZhi(diZhiWenBen, weiDu, jingDu) {
+      document.getElementById('diZhi').value = diZhiWenBen;
+      zhuangTai.dangQianDingWei.diZhi = diZhiWenBen;
+      zhuangTai.dangQianDingWei.geShiHuaDiZhi = diZhiWenBen;
+      gengXinDiTuLianJie(weiDu, jingDu);
+      xianShiXiaoXi('已选择: ' + diZhiWenBen, 'success');
     }
 
-    function useCoordinateOnly(lat, lng) {
-      var text = '坐标: ' + lat.toFixed(6) + ', ' + lng.toFixed(6);
-      setAddress(text, lat, lng);
+    function jinYongZuoBiao(weiDu, jingDu) {
+      var text = '坐标: ' + weiDu.toFixed(6) + ', ' + jingDu.toFixed(6);
+      sheZhiDiZhi(text, weiDu, jingDu);
     }
 
-    function updateMapLinks(lat, lng) {
-      var addr = encodeURIComponent(state.currentLocation ? state.currentLocation.address || '' : '');
-      document.getElementById('amapLink').href = 'https://uri.amap.com/marker?position=' + lng + ',' + lat + '&name=' + addr;
-      document.getElementById('baiduLink').href = 'https://api.map.baidu.com/marker?location=' + lat + ',' + lng + '&title=' + addr;
-      document.getElementById('amapLink').style.display = 'inline';
-      document.getElementById('baiduLink').style.display = 'inline';
+    function gengXinDiTuLianJie(weiDu, jingDu) {
+      var addr = encodeURIComponent(zhuangTai.dangQianDingWei ? zhuangTai.dangQianDingWei.diZhi || '' : '');
+      document.getElementById('gaoDeLianJie').href = 'https://uri.amap.com/marker?position=' + jingDu + ',' + weiDu + '&name=' + addr;
+      document.getElementById('baiDuLianJie').href = 'https://api.map.baidu.com/marker?location=' + weiDu + ',' + jingDu + '&title=' + addr;
+      document.getElementById('gaoDeLianJie').style.display = 'inline';
+      document.getElementById('baiDuLianJie').style.display = 'inline';
     }
 
-    function compressImage(file, maxW, q) {
+    function yaSuoTuPian(file, maxW, q) {
       maxW = maxW || 1200; q = q || 0.8;
       return new Promise(function(resolve) {
         var reader = new FileReader();
@@ -271,49 +271,49 @@
       });
     }
 
-    async function handleFileSelect(e) {
-      if (state.isProcessing) return;
+    async function chuLiWenJianXuanZe(e) {
+      if (zhuangTai.zhengZaiChuLi) return;
       var files = Array.from(e.target.files);
-      var rem = state.maxImages - state.images.length;
-      if (rem <= 0) { showMessage('最多5张', 'error'); return; }
+      var rem = zhuangTai.zuiDaTuPian - zhuangTai.tuPianLieBiao.length;
+      if (rem <= 0) { xianShiXiaoXi('最多5张', 'error'); return; }
       var tp = files.slice(0, rem);
-      state.isProcessing = true;
-      document.getElementById('uploadProgress').style.display = 'block';
+      zhuangTai.zhengZaiChuLi = true;
+      document.getElementById('shangChuanJinDu').style.display = 'block';
       for (var i = 0; i < tp.length; i++) {
-        var r = await compressImage(tp[i]);
-        state.images.push(r.dataUrl); state.imageSizes.push({ width: r.origWidth, height: r.origHeight });
-        renderPreview(r.dataUrl); updateImageCount();
-        document.getElementById('progressBar').style.width = ((i+1)/tp.length*100)+'%';
+        var r = await yaSuoTuPian(tp[i]);
+        zhuangTai.tuPianLieBiao.push(r.dataUrl); zhuangTai.tuPianChiCunLieBiao.push({ width: r.origWidth, height: r.origHeight });
+        xuanRanYuLan(r.dataUrl); gengXinTuPianJiShu();
+        document.getElementById('jinDuTiao').style.width = ((i+1)/tp.length*100)+'%';
       }
-      state.isProcessing = false;
-      document.getElementById('uploadProgress').style.display = 'none';
+      zhuangTai.zhengZaiChuLi = false;
+      document.getElementById('shangChuanJinDu').style.display = 'none';
       e.target.value = '';
     }
 
-    function renderPreview(url) {
-      var c = document.getElementById('imageContainer'), b = document.getElementById('uploadBtn');
+    function xuanRanYuLan(url) {
+      var c = document.getElementById('tuPianRongQi'), b = document.getElementById('shangChuanAnNiu');
       var d = document.createElement('div'); d.className = 'image-item';
       d.style.backgroundImage = 'url(' + url + ')';
       var x = document.createElement('span'); x.className = 'delete-btn'; x.textContent = 'x';
-      x.onclick = function(ev) { ev.stopPropagation(); var idx = Array.from(c.querySelectorAll('.image-item')).indexOf(d); removeImage(idx); };
+      x.onclick = function(ev) { ev.stopPropagation(); var idx = Array.from(c.querySelectorAll('.image-item')).indexOf(d); shanChuTuPian(idx); };
       d.appendChild(x); c.insertBefore(d, b);
-      if (state.images.length >= state.maxImages) b.style.display = 'none';
+      if (zhuangTai.tuPianLieBiao.length >= zhuangTai.zuiDaTuPian) b.style.display = 'none';
     }
 
-    function removeImage(i) { state.images.splice(i,1); state.imageSizes.splice(i,1); refreshImages(); updateImageCount(); }
-    function clearImages() { if (!state.images.length) return; state.images=[]; state.imageSizes=[]; refreshImages(); updateImageCount(); }
-    function refreshImages() { var c = document.getElementById('imageContainer'); c.querySelectorAll('.image-item').forEach(function(e){e.remove();}); state.images.forEach(function(img){renderPreview(img);}); document.getElementById('uploadBtn').style.display = state.images.length < state.maxImages ? 'flex':'none'; }
-    function updateImageCount() { var el = document.getElementById('imageCount'); el.textContent = state.images.length + '/' + state.maxImages; el.style.background = state.images.length >= state.minImages ? '#27ae60' : state.images.length > 0 ? '#f39c12' : '#3498db'; }
+    function shanChuTuPian(i) { zhuangTai.tuPianLieBiao.splice(i,1); zhuangTai.tuPianChiCunLieBiao.splice(i,1); shuaXinTuPian(); gengXinTuPianJiShu(); }
+    function qingChuTuPian() { if (!zhuangTai.tuPianLieBiao.length) return; zhuangTai.tuPianLieBiao=[]; zhuangTai.tuPianChiCunLieBiao=[]; shuaXinTuPian(); gengXinTuPianJiShu(); }
+    function shuaXinTuPian() { var c = document.getElementById('tuPianRongQi'); c.querySelectorAll('.image-item').forEach(function(e){e.remove();}); zhuangTai.tuPianLieBiao.forEach(function(img){xuanRanYuLan(img);}); document.getElementById('shangChuanAnNiu').style.display = zhuangTai.tuPianLieBiao.length < zhuangTai.zuiDaTuPian ? 'flex':'none'; }
+    function gengXinTuPianJiShu() { var el = document.getElementById('tuPianJiShu'); el.textContent = zhuangTai.tuPianLieBiao.length + '/' + zhuangTai.zuiDaTuPian; el.style.background = zhuangTai.tuPianLieBiao.length >= zhuangTai.zuiXiaoTuPian ? '#27ae60' : zhuangTai.tuPianLieBiao.length > 0 ? '#f39c12' : '#3498db'; }
 
-    function updateUnsavedBadge() {
-      var badge = document.getElementById('unsavedBadge');
-      var unsaved = allRecords.filter(function(r){ return !downloadedIds.includes(r.id); }).length;
+    function gengXinWeiXiaZaiBiaoJi() {
+      var badge = document.getElementById('weiXiaZaiBiaoJi');
+      var unsaved = quanBuJiLu.filter(function(r){ return !yiXiaZaiIds.includes(r.id); }).length;
       if (unsaved > 0) { badge.textContent = unsaved + '条未下载'; badge.style.display = 'inline-block'; }
       else { badge.style.display = 'none'; }
     }
 
-    async function generateExcel() {
-      document.getElementById('loadingText').textContent = '生成Excel中...';
+    async function shengChengExcel() {
+      document.getElementById('jiaZaiWenZi').textContent = '生成Excel中...';
       var wb = new ExcelJS.Workbook(), ws = wb.addWorksheet('走访记录');
       var hdrs = ['序号','记录时间','客户名称','联系方式','联系人','走访人','用户反映情况','用户使用电信情况说明','地址','图片1','图片2','图片3','图片4','图片5'];
       var colWidths = [5,16,14,13,10,9,28,28,25,14,14,14,14,14];
@@ -324,8 +324,8 @@
         c.alignment = {horizontal:'center',vertical:'middle',wrapText:true};
         c.border = {top:{style:'thin'},bottom:{style:'thin'},left:{style:'thin'},right:{style:'thin'}};
       });
-      for (var i = 0; i < allRecords.length; i++) {
-        var r = allRecords[i], row = ws.getRow(i+2);
+      for (var i = 0; i < quanBuJiLu.length; i++) {
+        var r = quanBuJiLu[i], row = ws.getRow(i+2);
         var rowData = [i+1, r.time, r.customerName, r.customerContact, r.contactPerson, r.visitorName, r.customerFeedback, r.telecomUsage, r.address];
         for (var j = 0; j < rowData.length; j++) {
           var cell = row.getCell(j+1);
@@ -361,61 +361,61 @@
       var url = URL.createObjectURL(blob);
       var a = document.createElement('a'); a.href = url; a.download = '走访记录_' + new Date().toISOString().slice(0,10) + '.xlsx'; a.click();
       URL.revokeObjectURL(url);
-      downloadedIds = allRecords.map(function(r){ return r.id; });
-      localStorage.setItem('downloadedIds', JSON.stringify(downloadedIds));
-      updateUnsavedBadge();
+      yiXiaZaiIds = quanBuJiLu.map(function(r){ return r.id; });
+      localStorage.setItem('downloadedIds', JSON.stringify(yiXiaZaiIds));
+      gengXinWeiXiaZaiBiaoJi();
     }
 
-    document.getElementById('visitForm').addEventListener('submit', async function(e) {
+    document.getElementById('zouFangBiaoDan').addEventListener('submit', async function(e) {
       e.preventDefault();
-      var cn = document.getElementById('customerName').value.trim();
-      var cc = document.getElementById('customerContact').value.trim();
-      var cp = document.getElementById('contactPerson').value.trim();
-      var vn = document.getElementById('visitorName').value;
-      var cf = document.getElementById('customerFeedback').value.trim();
-      var tu = document.getElementById('telecomUsage').value.trim();
-      if (!cn) { showMessage('请输入客户名称','error'); return; }
-      if (!cc) { showMessage('请输入联系方式','error'); return; }
-      if (!cp) { showMessage('请输入联系人','error'); return; }
-      if (!vn) { showMessage('请选择走访人','error'); return; }
-      if (state.images.length < state.minImages) { showMessage('至少' + state.minImages + '张图片','error'); return; }
-      if (!state.currentLocation || !state.currentLocation.address) { showMessage('请获取位置','error'); return; }
+      var cn = document.getElementById('keHuMingCheng').value.trim();
+      var cc = document.getElementById('keHuLianXiFangShi').value.trim();
+      var cp = document.getElementById('lianXiRen').value.trim();
+      var vn = document.getElementById('zouFangRen').value;
+      var cf = document.getElementById('yongHuFanYing').value.trim();
+      var tu = document.getElementById('dianXinShiYong').value.trim();
+      if (!cn) { xianShiXiaoXi('请输入客户名称','error'); return; }
+      if (!cc) { xianShiXiaoXi('请输入联系方式','error'); return; }
+      if (!cp) { xianShiXiaoXi('请输入联系人','error'); return; }
+      if (!vn) { xianShiXiaoXi('请选择走访人','error'); return; }
+      if (zhuangTai.tuPianLieBiao.length < zhuangTai.zuiXiaoTuPian) { xianShiXiaoXi('至少' + zhuangTai.zuiXiaoTuPian + '张图片','error'); return; }
+      if (!zhuangTai.dangQianDingWei || !zhuangTai.dangQianDingWei.diZhi) { xianShiXiaoXi('请获取位置','error'); return; }
       var record = {
         id: Date.now(), time: new Date().toLocaleString('zh-CN'),
         customerName: cn, customerContact: cc, contactPerson: cp, visitorName: vn,
         customerFeedback: cf, telecomUsage: tu,
-        address: state.currentLocation.address||'',
-        latitude: state.currentLocation.lat, longitude: state.currentLocation.lng,
-        images: state.images.slice(), imageSizes: state.imageSizes.slice(), imageCount: state.images.length
+        address: zhuangTai.dangQianDingWei.diZhi||'',
+        latitude: zhuangTai.dangQianDingWei.weiDu, longitude: zhuangTai.dangQianDingWei.jingDu,
+        images: zhuangTai.tuPianLieBiao.slice(), imageSizes: zhuangTai.tuPianChiCunLieBiao.slice(), imageCount: zhuangTai.tuPianLieBiao.length
       };
-      allRecords.push(record);
-      localStorage.setItem('visitRecords', JSON.stringify(allRecords));
-      renderTable(); resetForm(); updateUnsavedBadge();
-      showMessage('记录已保存','success');
+      quanBuJiLu.push(record);
+      localStorage.setItem('visitRecords', JSON.stringify(quanBuJiLu));
+      xuanRanBiaoGe(); chongZhiBiaoDan(); gengXinWeiXiaZaiBiaoJi();
+      xianShiXiaoXi('记录已保存','success');
     });
 
-    async function downloadExcel() { if (!allRecords.length) { showMessage('暂无记录','error'); return; } document.getElementById('loadingOverlay').style.display = 'flex'; await generateExcel(); document.getElementById('loadingOverlay').style.display = 'none'; showMessage('Excel已下载','success'); }
+    async function xiaZaiExcel() { if (!quanBuJiLu.length) { xianShiXiaoXi('暂无记录','error'); return; } document.getElementById('jiaZaiMengCeng').style.display = 'flex'; await shengChengExcel(); document.getElementById('jiaZaiMengCeng').style.display = 'none'; xianShiXiaoXi('Excel已下载','success'); }
 
-    function renderTable() {
-      document.getElementById('recordCount').textContent = '(' + allRecords.length + '条)';
-      var tb = document.getElementById('recordsBody');
-      if (!allRecords.length) { tb.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:12px;">暂无记录</td></tr>'; return; }
-      tb.innerHTML = allRecords.map(function(r,i){
-        var down = downloadedIds.includes(r.id);
-        return '<tr style="' + (down?'':'background:#fffbf0;') + '"><td>' + (i+1) + '</td><td>' + r.time.substring(5,16) + '</td><td>' + r.customerName.substring(0,6) + '</td><td>' + r.customerContact + '</td><td>' + (r.contactPerson||'').substring(0,4) + '</td><td>' + r.visitorName + '</td><td>' + (r.customerFeedback||'').substring(0,4) + '..</td><td>' + (r.telecomUsage||'').substring(0,4) + '..</td><td>' + (r.imageCount||0) + (down?'':' *') + '</td><td><button onclick="deleteRecord(' + r.id + ')" style="background:#e74c3c;color:white;border:none;padding:2px 5px;border-radius:3px;font-size:9px;">删</button></td></tr>';
+    function xuanRanBiaoGe() {
+      document.getElementById('jiLuJiShu').textContent = '(' + quanBuJiLu.length + '条)';
+      var tb = document.getElementById('jiLuBiaoTi');
+      if (!quanBuJiLu.length) { tb.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:12px;">暂无记录</td></tr>'; return; }
+      tb.innerHTML = quanBuJiLu.map(function(r,i){
+        var down = yiXiaZaiIds.includes(r.id);
+        return '<tr style="' + (down?'':'background:#fffbf0;') + '"><td>' + (i+1) + '</td><td>' + r.time.substring(5,16) + '</td><td>' + r.customerName.substring(0,6) + '</td><td>' + r.customerContact + '</td><td>' + (r.contactPerson||'').substring(0,4) + '</td><td>' + r.visitorName + '</td><td>' + (r.customerFeedback||'').substring(0,4) + '..</td><td>' + (r.telecomUsage||'').substring(0,4) + '..</td><td>' + (r.imageCount||0) + (down?'':' *') + '</td><td><button onclick="shanChuJiLu(' + r.id + ')" style="background:#e74c3c;color:white;border:none;padding:2px 5px;border-radius:3px;font-size:9px;">删</button></td></tr>';
       }).join('');
     }
 
-    function deleteRecord(id) { if (!confirm('删除？')) return; allRecords = allRecords.filter(function(r){return r.id!==id;}); downloadedIds = downloadedIds.filter(function(d){return d!==id;}); localStorage.setItem('visitRecords', JSON.stringify(allRecords)); localStorage.setItem('downloadedIds', JSON.stringify(downloadedIds)); renderTable(); updateUnsavedBadge(); }
-    function clearAllRecords() { if (!allRecords.length) return; if (confirm('清空全部？')) { allRecords=[]; downloadedIds=[]; localStorage.removeItem('visitRecords'); localStorage.removeItem('downloadedIds'); renderTable(); updateUnsavedBadge(); } }
-    function resetForm() { ['customerName','customerContact','contactPerson','visitorName','customerFeedback','telecomUsage','address'].forEach(function(id){document.getElementById(id).value='';}); document.getElementById('latitude').value=''; document.getElementById('longitude').value=''; document.getElementById('amapLink').style.display='none'; document.getElementById('baiduLink').style.display='none'; state.images=[]; state.imageSizes=[]; state.currentLocation=null; refreshImages(); updateImageCount(); }
-    function previewData() { showMessage(JSON.stringify({客户:document.getElementById('customerName').value||'未填',联系方式:document.getElementById('customerContact').value||'未填',走访人:document.getElementById('visitorName').value||'未选',图片:state.images.length+'张'},null,2),'info'); }
-    function showMessage(m,t) { var el=document.getElementById('statusMessage'); el.textContent=m; el.className='status-message '+t; setTimeout(function(){el.style.display='none';},4000); }
+    function shanChuJiLu(id) { if (!confirm('删除？')) return; quanBuJiLu = quanBuJiLu.filter(function(r){return r.id!==id;}); yiXiaZaiIds = yiXiaZaiIds.filter(function(d){return d!==id;}); localStorage.setItem('visitRecords', JSON.stringify(quanBuJiLu)); localStorage.setItem('downloadedIds', JSON.stringify(yiXiaZaiIds)); xuanRanBiaoGe(); gengXinWeiXiaZaiBiaoJi(); }
+    function qingChuQuanBuJiLu() { if (!quanBuJiLu.length) return; if (confirm('清空全部？')) { quanBuJiLu=[]; yiXiaZaiIds=[]; localStorage.removeItem('visitRecords'); localStorage.removeItem('downloadedIds'); xuanRanBiaoGe(); gengXinWeiXiaZaiBiaoJi(); } }
+    function chongZhiBiaoDan() { ['keHuMingCheng','keHuLianXiFangShi','lianXiRen','zouFangRen','yongHuFanYing','dianXinShiYong','diZhi'].forEach(function(id){document.getElementById(id).value='';}); document.getElementById('weiDu').value=''; document.getElementById('jingDu').value=''; document.getElementById('gaoDeLianJie').style.display='none'; document.getElementById('baiDuLianJie').style.display='none'; zhuangTai.tuPianLieBiao=[]; zhuangTai.tuPianChiCunLieBiao=[]; zhuangTai.dangQianDingWei=null; shuaXinTuPian(); gengXinTuPianJiShu(); }
+    function yuLanShuJu() { xianShiXiaoXi(JSON.stringify({客户:document.getElementById('keHuMingCheng').value||'未填',联系方式:document.getElementById('keHuLianXiFangShi').value||'未填',走访人:document.getElementById('zouFangRen').value||'未选',图片:zhuangTai.tuPianLieBiao.length+'张'},null,2),'info'); }
+    function xianShiXiaoXi(m,t) { var el=document.getElementById('zhuangTaiXiaoXi'); el.textContent=m; el.className='status-message '+t; setTimeout(function(){el.style.display='none';},4000); }
 
     window.onload = function() {
-      updateImageCount();
-      renderTable();
-      updateUnsavedBadge();
+      gengXinTuPianJiShu();
+      xuanRanBiaoGe();
+      gengXinWeiXiaZaiBiaoJi();
     };
   </script>
 </body>
